@@ -1,10 +1,17 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-
+import { DragControls } from 'three/addons/controls/DragControls.js';
 
 let renderer, scene, camera;
 
 let spotLight, lightHelper;
+
+let t = 0;
+
+let fish1;
+var axis = new THREE.Vector3(0 , 1, 0);
+
+let dragControls;
 
 init();
 
@@ -40,45 +47,64 @@ function init() {
   cube.rotation.z = Math.PI / 2; // Rotate to lay on the long side
   scene.add(cube);
 
-  // // CREATE PLANE
-  // const planeGeometry = new THREE.PlaneGeometry(5, 5);
-  // const planeMaterial = new THREE.MeshStandardMaterial({ color: 0x0000ff, side: THREE.DoubleSide });
-  // const plane = new THREE.Mesh(planeGeometry, planeMaterial);
-  // plane.rotation.x = -Math.PI / 2; // Rotate to lay flat horizontally
-  // plane.position.y = 0; // Position as the ground
-  // scene.add(plane);
-
-  fishGeometry();
+  fish1 = fishGeometry();
 
   // MOUSE ROTATION CONTROLS
-  const controls = new OrbitControls(camera, renderer.domElement);
-  controls.minDistance = 2; // Minimum zoom distance
-  controls.maxDistance = 10; // Maximum zoom distance
-  controls.minPolarAngle = 0; // Allow camera to rotate straight up
-  controls.maxPolarAngle = Math.PI * 1 / 3; // Allow camera to rotate straight down
-  controls.target.set(0, 0, 0); // Focus the controls on the origin
-  controls.update();
+  const orbitControls = new OrbitControls(camera, renderer.domElement);
+  orbitControls.minDistance = 2; // Minimum zoom distance
+  orbitControls.maxDistance = 10; // Maximum zoom distance
+  orbitControls.minPolarAngle = 0; // Allow camera to rotate straight up
+  orbitControls.maxPolarAngle = Math.PI * 1 / 3; // Allow camera to rotate straight down
+  orbitControls.target.set(0, 0, 0); // Focus the controls on the origin
+  orbitControls.update();
 
-  window.addEventListener("resize", onWindowResize);
-
-}
-
-function onWindowResize() {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  dragControls = new DragControls( [fish1], camera, renderer.domElement)
+  dragControls.addEventListener( 'dragstart', function ( event ) {
+    orbitControls.enabled = false;
+    event.object.material.emissive.set( 0xaaaaaa );
+    spotLight.color.setHex(0x00ff00);
+  
+  } );
+  
+  dragControls.addEventListener( 'dragend', function ( event ) {
+    orbitControls.enabled = true;
+    event.object.material.emissive.set( 0x000000 );
+    event.object.position.y = 0;
+    spotLight.color.setHex(0xffffff);
+  } );
 }
 
 function animate() {
-	renderer.render( scene, camera );
+  const fishRotationRadius = 2;
+  fish1.position.x = fishRotationRadius * Math.cos(t);
+  fish1.position.z = fishRotationRadius * Math.sin(t);
+
+  // fish/cone tip should look in direction of the circle
+  const velocity = new THREE.Vector3(
+    -fishRotationRadius * Math.sin(t),
+    0,
+    fishRotationRadius * Math.cos(t)
+  );
+
+  fish1.lookAt(
+    fish1.position.x + velocity.x,
+    fish1.position.y + velocity.y,
+    fish1.position.z + velocity.z
+  );
+
+  // tilt the fish/cone to lie flat
+  fish1.rotateX(Math.PI / 2);
+
+  t += 0.01;
+
+  renderer.render(scene, camera);
 }
 
 renderer.setAnimationLoop( animate );
 
 function fishGeometry() {
   // sample pond 
-  const samplePondGeo = new THREE.CylinderGeometry(2, 2, 1);
+  const samplePondGeo = new THREE.CylinderGeometry(3, 3, 1);
   const sampleMaterial = new THREE.MeshStandardMaterial({ color: 0x0000ff })
   sampleMaterial.transparent = true;
   sampleMaterial.opacity = 0.5;
@@ -90,9 +116,11 @@ function fishGeometry() {
   const fishGeo = new THREE.ConeGeometry(0.25, 1);
   const fishMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
   const fish = new THREE.Mesh(fishGeo, fishMat);
-  fish.position.y = -1;
-  fish.rotation.x = -Math.PI / 2; // Rotate to lay flat horizontally
+  fish.position.y = -.25;
+  fish.position.set(0, 0, 2);
+  // fish.rotation.x = -Math.PI / 2;
+  // fish.rotation.z = Math.PI *3/4;
   scene.add(fish);
 
-  // return [sampleCyl, fish];
+  return fish;
 }
