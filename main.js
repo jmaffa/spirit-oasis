@@ -15,8 +15,7 @@ function init() {
 
   // SET UP CAMERA
   camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-  camera.position.z = 6;
-  camera.rotation.x = 0;
+  camera.position.set(3, 3, 6);
 
   // SET UP RENDERER
   renderer = new THREE.WebGLRenderer( { antialias: true } );
@@ -52,8 +51,9 @@ function init() {
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.minDistance = 2;
   controls.maxDistance = 10;
-  controls.maxPolarAngle = Math.PI / 2;
-  controls.target.set(0, 0.5, 0); // Point the controls target at cube and ground
+  controls.minPolarAngle = 0;
+  controls.maxPolarAngle = Math.PI * 1 / 3;
+  controls.target.set(0, 0, 0);
   controls.update();
 
 }
