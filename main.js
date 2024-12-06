@@ -4,12 +4,9 @@ import { DragControls } from 'three/addons/controls/DragControls.js';
 
 let renderer, scene, camera;
 
-let spotLight, lightHelper;
-
 let t = 0;
 
 let fish1;
-var axis = new THREE.Vector3(0 , 1, 0);
 
 let dragControls;
 
@@ -23,7 +20,6 @@ function init() {
   // SET UP CAMERA
   camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
   camera.position.set(3, 3, 6); // Positioned diagonally for an angled view
-
 
   // SET UP RENDERER
   renderer = new THREE.WebGLRenderer( { antialias: true } );
@@ -72,7 +68,18 @@ function init() {
     event.object.position.y = 0;
     spotLight.color.setHex(0xffffff);
   } );
+
+  window.addEventListener("resize", onWindowResize);
 }
+
+
+function onWindowResize() {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+
+  renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
 
 function animate() {
   const fishRotationRadius = 2;
@@ -118,8 +125,6 @@ function fishGeometry() {
   const fish = new THREE.Mesh(fishGeo, fishMat);
   fish.position.y = -.25;
   fish.position.set(0, 0, 2);
-  // fish.rotation.x = -Math.PI / 2;
-  // fish.rotation.z = Math.PI *3/4;
   scene.add(fish);
 
   return fish;
