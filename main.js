@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { DragControls } from 'three/addons/controls/DragControls.js';
+import { DragControls } from 'three/addons/controls/DragControls.js';
 
 let renderer, scene, camera;
 
@@ -44,6 +45,7 @@ function init() {
   scene.add(cube);
 
   fish1 = fishGeometry();
+  fish1 = fishGeometry();
 
   // MOUSE ROTATION CONTROLS
   const orbitControls = new OrbitControls(camera, renderer.domElement);
@@ -82,6 +84,29 @@ function onWindowResize() {
 
 
 function animate() {
+  const fishRotationRadius = 2;
+  fish1.position.x = fishRotationRadius * Math.cos(t);
+  fish1.position.z = fishRotationRadius * Math.sin(t);
+
+  // fish/cone tip should look in direction of the circle
+  const velocity = new THREE.Vector3(
+    -fishRotationRadius * Math.sin(t),
+    0,
+    fishRotationRadius * Math.cos(t)
+  );
+
+  fish1.lookAt(
+    fish1.position.x + velocity.x,
+    fish1.position.y + velocity.y,
+    fish1.position.z + velocity.z
+  );
+
+  // tilt the fish/cone to lie flat
+  fish1.rotateX(Math.PI / 2);
+
+  t += 0.01;
+
+  renderer.render(scene, camera);
   const fishRotationRadius = 2;
   fish1.position.x = fishRotationRadius * Math.cos(t);
   fish1.position.z = fishRotationRadius * Math.sin(t);
