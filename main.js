@@ -56,6 +56,15 @@ function init() {
   controls.target.set(0, 0, 0);
   controls.update();
 
+  window.addEventListener("resize", onWindowResize);
+
+}
+
+function onWindowResize() {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+
+  renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
 function animate() {
