@@ -1,8 +1,9 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { waterMesh } from './pond.js';
+import Cubemap from './cubemap.js';
 
-
-let renderer, scene, camera;
+let renderer, scene, camera, cubemap;
 
 let spotLight, lightHelper;
 
@@ -21,7 +22,7 @@ function init() {
   renderer = new THREE.WebGLRenderer( { antialias: true } );
   renderer.setPixelRatio( window.devicePixelRatio );
   renderer.setSize( window.innerWidth, window.innerHeight );
-  renderer.setAnimationLoop( animate );
+  // renderer.setAnimationLoop( animate );
   document.body.appendChild( renderer.domElement );
 
   // ADD SPOT LIGHT
@@ -39,13 +40,38 @@ function init() {
   cube.rotation.z = Math.PI / 2; // Rotate to lay on the long side
   scene.add(cube);
 
-  // CREATE PLANE
-  const planeGeometry = new THREE.PlaneGeometry(5, 5);
-  const planeMaterial = new THREE.MeshStandardMaterial({ color: 0x0000ff, side: THREE.DoubleSide });
-  const plane = new THREE.Mesh(planeGeometry, planeMaterial);
-  plane.rotation.x = -Math.PI / 2; // Rotate to lay flat horizontally
-  plane.position.y = 0; // Position as the ground
-  scene.add(plane);
+  // CREATE POND CYLINDER
+  const pondGeometry = new THREE.CylinderGeometry(2.5, 2.5, 0.5, 64); // radiusTop, radiusBottom, height, radialSegments
+  const pondMaterial = new THREE.MeshStandardMaterial({
+    color: 0x156289,
+    emissive: 0x072534,
+    metalness: 0.5,
+    roughness: 0.7,
+    side: THREE.DoubleSide,
+  }); // TODO claire check and modify
+
+  const pond = new THREE.Mesh(pondGeometry, pondMaterial);
+  pond.position.y = -0.25; // Position it slightly below w ater mesh
+  scene.add(pond);
+
+  // ADD WATER MESH
+  waterMesh.geometry = new THREE.PlaneGeometry(5, 5, 256, 256); // Match the pond's size
+  waterMesh.rotation.x = -Math.PI / 2; // Lay flat
+  waterMesh.position.y = 0; // Position at the top of the pond
+  scene.add(waterMesh);
+
+  // LOAD CUBEMAP
+  cubemap = new Cubemap({
+    xpos: 'textures/xpos.png', // TODO claire - files need to include sky reflection
+    xneg: 'textures/xneg.png',
+    ypos: 'textures/ypos.png',
+    yneg: 'textures/yneg.png',
+    zpos: 'textures/zpos.png',
+    zneg: 'textures/zneg.png',
+  });
+
+  scene.background = cubemap.texture;
+  waterMesh.material.uniforms.uCubemap = { value: cubemap.texture };
 
   // MOUSE ROTATION CONTROLS
   const controls = new OrbitControls(camera, renderer.domElement);
@@ -58,6 +84,8 @@ function init() {
 
   window.addEventListener("resize", onWindowResize);
 
+  const clock = new THREE.Clock();
+  renderer.setAnimationLoop(animate);
 }
 
 function onWindowResize() {
@@ -68,7 +96,12 @@ function onWindowResize() {
 }
 
 function animate() {
-	renderer.render( scene, camera );
+  // update the water's time uniform
+  waterMesh.material.uniforms.time.value += 0.01;
+
+  // TODO claire update cubemap texture potentially
+
+  renderer.render(scene, camera);
 }
 
-renderer.setAnimationLoop( animate );
+// renderer.setAnimationLoop( animate );
