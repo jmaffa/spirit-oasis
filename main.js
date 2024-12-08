@@ -37,32 +37,19 @@ let water;
 
 init();
 
-//TODO: this is mostly junk
-function perlinNoise(x, y, z) {
-  // Implementation of Perlin noise
-  // This is a placeholder, you need to use a real Perlin noise function
-  // return Math.sin(x + y + z);
-  return Math.random();
-}
 
 function updateWaterColor() {
   // OPTION 1
-  water.material.uniforms.time.value += 0.02;
-
-  // OPTION 2
-  // const time = Date.now() * 0.001; // Get the current time in seconds
-  // const color1 = new THREE.Color(0x0487e2); // Base color 1
-  // const color2 = new THREE.Color(0x74ccf4); // Base color 2
-
-  // // Interpolate between the two colors based on time
-  // const factor = (Math.sin(time) + 1) / 2; // Factor oscillates between 0 and 1
-  // waterMaterial.color = color1.lerp(color2, factor);
+  water.material.uniforms.time.value += 0.1;
 }
 
 function setup_water(){
   water = createOcean()
   
-  water.position.set(0, -2, 0);
+  water.position.set(0, -8, 0);
+  water.rotation.z = -Math.PI / 2;
+  // water.rotation.y = -Math.PI / 2;
+  water.rotation.x = -Math.PI / 2;
   scene.add(water);
 }
 
@@ -177,7 +164,7 @@ function animate() {
 	// renderer.render( scene, camera );
   
   // update the water's time uniform
-  waterMesh.material.uniforms.time.value += 0.01;
+  waterMesh.material.uniforms.time.value += 0.1;
 
   // TODO claire update cubemap texture potentially
 
