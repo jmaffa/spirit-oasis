@@ -69,6 +69,24 @@ function setupIsland(){
   scene.add(island);
 }
 
+function setUpMountains(){
+  const mountainGeometry = new THREE.CylinderGeometry(7, 7, 20, 32);
+  const mountainMaterial = new THREE.MeshBasicMaterial({
+    color: 0x0000ff, // Inside color
+    // transparent: true, // Make the material transparent/
+    opacity: 0.8, // Control transparency level (0 = fully transparent, 1 = fully opaque)
+    side: THREE.BackSide, // Render the inside of the cylinder
+    wireframe: false, // Optional: Turn off wireframe if not needed
+  });
+  const mountain = new THREE.Mesh(
+    mountainGeometry,
+    mountainMaterial
+  )
+  mountain.position.set(0,-5,0);
+  scene.add(mountain);
+}
+
+
 function init() {
   // // SET UP SCENE
   scene = new THREE.Scene();
@@ -92,12 +110,18 @@ function init() {
   spotLight.castShadow = true;
   scene.add(spotLight);
 
+  // CREATE OCEAN
   // TODO: Joe: Water shading.
   setupOcean();
   
   // CREATE ISLAND
   // TODO: make this more exciting.
   setupIsland();
+
+  // CREATE "MOUNTAIN LAND"
+  // TODO: work on this
+  // setUpMountains();
+  
   // CREATE CUBE
   // const geometry = new THREE.BoxGeometry(1, 2, 1);
   // const material = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
