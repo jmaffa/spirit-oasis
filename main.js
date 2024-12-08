@@ -19,36 +19,41 @@ import {
 } from "three/tsl";
 
 import { waterMesh } from './pond.js';
-import { createOcean } from './ocean-water.js';
+import { createOceanMesh, updateWater, INIT_BLOOM } from './ocean-water.js';
 import Cubemap from './cubemap.js';
 
 let renderer, scene, camera, cubemap;
 
 let spotLight, lightHelper;
 
-// let camera, scene, renderer;
-let mixer, objects, clock;
-let model, floor, floorPosition;
-let postProcessing;
-let controls;
-let stats;
-let waterMaterial;
-let water;
+// Flag to toggle bloom effect in "ocean"
+let bloomOn = false;
+// Constants to change "ocean" position
+const OCEAN_X = 0;
+const OCEAN_Y = -6;
+const OCEAN_Z = 0;
 
 init();
 
-
-function updateWaterColor() {
-  // OPTION 1
-  water.material.uniforms.time.value += 0.1;
+/**
+ * Sets event listeners for all interactable key presses
+ */
+function setupKeyPressInteraction() {
+  // Handles "ocean" water bloom
+  document.addEventListener("keydown", function (event) {
+    if (event.key === "b") {
+      bloomOn = !bloomOn; // Toggle the flag
+      console.log("Flag flipped:", bloomOn);
+    }
+  });
 }
 
-function setup_water(){
-  water = createOcean()
-  
-  water.position.set(0, -8, 0);
-  water.rotation.z = -Math.PI / 2;
-  // water.rotation.y = -Math.PI / 2;
+/**
+ * Sets up ocean and initializes its position
+ */
+function setupOcean(){
+  const water = createOceanMesh()
+  water.position.set(OCEAN_X, OCEAN_Y, OCEAN_Z);
   water.rotation.x = -Math.PI / 2;
   scene.add(water);
 }
@@ -76,16 +81,17 @@ function init() {
   spotLight.castShadow = true;
   scene.add(spotLight);
 
-  // TODO: WATER BELOW
-  setup_water();
+  // TODO: Joe: Water shading.
+  setupOcean();
+  
 
   // CREATE CUBE
-  const geometry = new THREE.BoxGeometry(1, 2, 1);
-  const material = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
-  const cube = new THREE.Mesh(geometry, material);
-  cube.position.set(0, 1, 0); // Adjust to lay flat
-  cube.rotation.z = Math.PI / 2; // Rotate to lay on the long side
-  scene.add(cube);
+  // const geometry = new THREE.BoxGeometry(1, 2, 1);
+  // const material = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
+  // const cube = new THREE.Mesh(geometry, material);
+  // cube.position.set(0, 1, 0); // Adjust to lay flat
+  // cube.rotation.z = Math.PI / 2; // Rotate to lay on the long side
+  // scene.add(cube);
 
   // CREATE POND CYLINDER
   const pondGeometry = new THREE.CylinderGeometry(2.5, 2.5, 0.5, 64); // radiusTop, radiusBottom, height, radialSegments
@@ -128,8 +134,11 @@ function init() {
   controls.maxPolarAngle = Math.PI * 1 / 3;
   controls.target.set(0, 0, 0);
   controls.update();
-
+  
+  setupKeyPressInteraction();
   window.addEventListener("resize", onWindowResize);
+
+  
 
   const clock = new THREE.Clock();
   renderer.setAnimationLoop(animate);
@@ -143,25 +152,12 @@ function onWindowResize() {
 }
 
 function animate() {
-// stats.update();
 
-// controls.update();
-  // floor.position.y = floorPosition.y - 5;
-
-  // if (model) {
-  //   mixer.update(delta);
-
-  //   model.position.y = floorPosition.y;
-  // }
-
-  // for (const object of objects.children) {
-  //   object.position.y = Math.sin(clock.elapsedTime + object.id) * 0.3;
-  //   object.rotation.y += delta * 0.3;
-  // }
-
+  // TODO: post processing?
   // postProcessing.render();
-  updateWaterColor();
-	// renderer.render( scene, camera );
+
+  // Moves water and controls bloom based on `b` keypress
+  updateWater(bloomOn);
   
   // update the water's time uniform
   waterMesh.material.uniforms.time.value += 0.1;
