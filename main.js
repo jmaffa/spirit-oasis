@@ -58,6 +58,17 @@ function setupOcean(){
   scene.add(water);
 }
 
+function setupIsland(){
+  const islandGeometry = new THREE.CylinderGeometry(3, 3, 5, 32);
+  const islandMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
+  const island = new THREE.Mesh(
+    islandGeometry,
+    islandMaterial
+  )
+  island.position.set(0,-3,0);
+  scene.add(island);
+}
+
 function init() {
   // // SET UP SCENE
   scene = new THREE.Scene();
@@ -84,7 +95,9 @@ function init() {
   // TODO: Joe: Water shading.
   setupOcean();
   
-
+  // CREATE ISLAND
+  // TODO: make this more exciting.
+  setupIsland();
   // CREATE CUBE
   // const geometry = new THREE.BoxGeometry(1, 2, 1);
   // const material = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
