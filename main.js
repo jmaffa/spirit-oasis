@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { DragControls } from 'three/addons/controls/DragControls.js';
+import { GLTFLoader } from 'three/examples/jsm/Addons.js';
 import {
   color,
   vec2,
@@ -21,10 +23,12 @@ import {
 import { waterMesh } from './pond.js';
 import { createOceanMesh, updateWater, INIT_BLOOM } from './ocean-water.js';
 import Cubemap from './cubemap.js';
+import { updateTui, updateLa, bezierCurve } from './fish.js';
 
-let renderer, scene, camera, cubemap;
-
-let spotLight, lightHelper;
+let renderer, scene, camera, cubemap, dragControls;
+let tui, la;
+let fishTime = 0;
+let tuiCurve;
 
 // Flag to toggle bloom effect in "ocean"
 let bloomOn = false;
@@ -86,6 +90,29 @@ function setUpMountains(){
   scene.add(mountain);
 }
 
+/**
+ * Sets up fish
+ */
+function setUpFish() {
+  const loader = new GLTFLoader();
+
+  const scale = 0.15;
+  loader.load("assets/white_fish.glb", function (gltf) {
+    const tui = gltf.scene;
+    tui.position.set(0, 0, 2);
+    tui.scale.set(scale, -scale, scale);
+    scene.add(tui);
+    tui.uniforms.time.value;
+  });
+
+  loader.load("assets/black_fish.glb", function (gltf) {
+    const la = gltf.scene;
+    la.position.set(0, 0, -2);
+    la.scale.set(scale, -scale, scale);
+    scene.add(la);
+  });
+}
+
 
 function init() {
   // // SET UP SCENE
@@ -117,6 +144,9 @@ function init() {
   // CREATE ISLAND
   // TODO: make this more exciting.
   setupIsland();
+
+  // CREATE FISH
+  setUpFish();
 
   // CREATE "MOUNTAIN LAND"
   // TODO: work on this
@@ -171,11 +201,24 @@ function init() {
   controls.maxPolarAngle = Math.PI * 1 / 3;
   controls.target.set(0, 0, 0);
   controls.update();
+
+  dragControls = new DragControls( [tui, la], camera, renderer.domElement)
+  dragControls.addEventListener( 'dragstart', function ( event ) {
+    controls.enabled = false;
+    event.object.material.emissive.set( 0xaaaaaa );
+    spotLight.color.setHex(0x00ff00);
+  
+  } );
+  
+  dragControls.addEventListener( 'dragend', function ( event ) {
+    controls.enabled = true;
+    event.object.material.emissive.set( 0x000000 );
+    event.object.position.y = 0;
+    spotLight.color.setHex(0xffffff);
+  } );
   
   setupKeyPressInteraction();
   window.addEventListener("resize", onWindowResize);
-
-  
 
   const clock = new THREE.Clock();
   renderer.setAnimationLoop(animate);
@@ -200,6 +243,16 @@ function animate() {
   waterMesh.material.uniforms.time.value += 0.1;
 
   // TODO claire update cubemap texture potentially
+
+  // fish timer
+  if (fishTime == 0) {
+    tuiCurve = bezierCurve();
+  } else if (fishTime > 1) {
+    fishTime = 0;
+  }
+  // updateTui(tui, tuiCurve, fishTime);
+
+  fishTime += 0.02;
 
   renderer.render(scene, camera);
 }
