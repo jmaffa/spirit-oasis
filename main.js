@@ -55,6 +55,7 @@ function setupOcean(){
   const water = createOceanMesh()
   water.position.set(OCEAN_X, OCEAN_Y, OCEAN_Z);
   water.rotation.x = -Math.PI / 2;
+  // water.rotation.z = -Math.PI / 2;
   scene.add(water);
 }
 
@@ -116,12 +117,12 @@ function init() {
   
   // CREATE ISLAND
   // TODO: make this more exciting.
-  setupIsland();
+  // setupIsland();
 
   // CREATE "MOUNTAIN LAND"
   // TODO: work on this
   // setUpMountains();
-  
+
   // CREATE CUBE
   // const geometry = new THREE.BoxGeometry(1, 2, 1);
   // const material = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
@@ -142,13 +143,13 @@ function init() {
 
   const pond = new THREE.Mesh(pondGeometry, pondMaterial);
   pond.position.y = -0.25; // Position it slightly below w ater mesh
-  scene.add(pond);
+  // scene.add(pond);
 
   // ADD WATER MESH
   waterMesh.geometry = new THREE.PlaneGeometry(5, 5, 256, 256); // Match the pond's size
   waterMesh.rotation.x = -Math.PI / 2; // Lay flat
   waterMesh.position.y = 0; // Position at the top of the pond
-  scene.add(waterMesh);
+  // scene.add(waterMesh);
 
   // LOAD CUBEMAP
   cubemap = new Cubemap({
