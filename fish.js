@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 let tuiCurve = bezierCurve();
-const fishSpeed = 0.02;
+const fishSpeed = 0.01;
 
 function bezierCurve() {
     const points = [
@@ -16,12 +16,13 @@ function bezierCurve() {
 }
 
 function updateTui(tui, curve, fishTime) {
-    const position = curve.getPoint(fishTime);
-    tui.position.copy(position);
-    const tangent = curve.getTangent(t).normalize();
-    const axis = new THREE.Vector3(0, 1, 0);
-    const quaternion = new THREE.Quaternion().setFromUnitVectors(axis, tangent);
-    tui.quaternion.copy(quaternion);
+    const pos = curve.getPoint(fishTime);
+
+    tui.position.copy(pos);
+    // const tangent = curve.getTangent(t).normalize();
+    // const axis = new THREE.Vector3(0, 1, 0);
+    // const quaternion = new THREE.Quaternion().setFromUnitVectors(axis, tangent);
+    // tui.quaternion.copy(quaternion);
 }
 
 function updateLa(la) {

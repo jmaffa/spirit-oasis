@@ -27,8 +27,10 @@ import { updateTui, updateLa, bezierCurve } from './fish.js';
 
 let renderer, scene, camera, cubemap, dragControls;
 let tui, la;
+let laModel;
+const fishArr = [];
 let fishTime = 0;
-let tuiCurve;
+let tuiCurve = bezierCurve();;
 
 // Flag to toggle bloom effect in "ocean"
 let bloomOn = false;
@@ -98,18 +100,22 @@ function setUpFish() {
 
   const scale = 0.15;
   loader.load("assets/white_fish.glb", function (gltf) {
-    const tui = gltf.scene;
+    tui = gltf.scene;
     tui.position.set(0, 0, 2);
     tui.scale.set(scale, -scale, scale);
     scene.add(tui);
-    tui.uniforms.time.value;
+    fishArr.push(tui);
+    // tui.uniforms.time.value;
   });
 
   loader.load("assets/black_fish.glb", function (gltf) {
-    const la = gltf.scene;
+    laModel = gltf.scene;
+    la = new THREE.Group();
+    laModel.scale.set(scale, -scale, scale);
+    la.add(laModel);
     la.position.set(0, 0, -2);
-    la.scale.set(scale, -scale, scale);
     scene.add(la);
+    fishArr.push(la);
   });
 }
 
@@ -202,7 +208,7 @@ function init() {
   controls.target.set(0, 0, 0);
   controls.update();
 
-  dragControls = new DragControls( [tui, la], camera, renderer.domElement)
+  dragControls = new DragControls( fishArr, camera, renderer.domElement)
   dragControls.addEventListener( 'dragstart', function ( event ) {
     controls.enabled = false;
     event.object.material.emissive.set( 0xaaaaaa );
@@ -231,6 +237,7 @@ function onWindowResize() {
   renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
+
 function animate() {
 
   // TODO: post processing?
@@ -244,15 +251,18 @@ function animate() {
 
   // TODO claire update cubemap texture potentially
 
+  if (tui) {
   // fish timer
   if (fishTime == 0) {
     tuiCurve = bezierCurve();
   } else if (fishTime > 1) {
     fishTime = 0;
   }
-  // updateTui(tui, tuiCurve, fishTime);
+  updateTui(tui, tuiCurve, fishTime);
 
-  fishTime += 0.02;
+  }
+
+  fishTime += 0.01;
 
   renderer.render(scene, camera);
 }
