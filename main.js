@@ -117,7 +117,7 @@ function init() {
   
   // CREATE ISLAND
   // TODO: make this more exciting.
-  // setupIsland();
+  setupIsland();
 
   // CREATE "MOUNTAIN LAND"
   // TODO: work on this
