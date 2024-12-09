@@ -4,9 +4,9 @@ import * as THREE from 'three';
 const INIT_BLOOM = 0.05
 const OCEAN_BLOOM_THRESHHOLD_LOW = INIT_BLOOM;
 const OCEAN_BLOOM_THRESHHOLD_HIGH = 3.0;
-const STAR_INNER_RADIUS = 9;
-const STAR_OUTER_RADIUS = 6;
-const STAR_SIDES = 5;
+const STAR_RADIUS = 9;
+const STAR_PETAL_DEPTH = 6;
+const STAR_PRONGS = 5;
 // let BLOOM_ON = false;
 // standard vertex shader just getting UV coordinate
 const vertexShader = `
@@ -92,31 +92,33 @@ const waterMaterial = new THREE.ShaderMaterial({
     fragmentShader: worleyShader,
 });  
 
-function createStar(innerRadius, outerRadius, points) {
+function createStar(prongs, radius, petalDepth) {
   const shape = new THREE.Shape();
-  const angleStep = Math.PI / points; // Angle between points
+  const angleStep = (Math.PI * 2) / prongs; // Angle between petals
 
-  // Create outer and inner points
-  for (let i = 0; i < points; i++) {
-    const angle = (i * Math.PI * 2) / points;
+  for (let i = 0; i < prongs; i++) {
+    const startAngle = i * angleStep;
+    const midAngle = startAngle + angleStep / 2;
+    const endAngle = startAngle + angleStep;
 
-    // Outer point
-    const outerX = Math.cos(angle) * outerRadius;
-    const outerY = Math.sin(angle) * outerRadius;
+    const startX = Math.cos(startAngle) * radius;
+    const startY = Math.sin(startAngle) * radius;
+
+    const midX = Math.cos(midAngle) * (radius + petalDepth);
+    const midY = Math.sin(midAngle) * (radius + petalDepth);
+
+    const endX = Math.cos(endAngle) * radius;
+    const endY = Math.sin(endAngle) * radius;
+
     if (i === 0) {
-      shape.moveTo(outerX, outerY);
-    } else {
-      shape.lineTo(outerX, outerY);
+      shape.moveTo(startX, startY); // Start the shape at the first point
     }
 
-    // Inner point
-    const innerAngle = angle + angleStep;
-    const innerX = Math.cos(innerAngle) * innerRadius;
-    const innerY = Math.sin(innerAngle) * innerRadius;
-    shape.lineTo(innerX, innerY);
+    // Add a quadratic curve for the petal
+    shape.quadraticCurveTo(midX, midY, endX, endY);
   }
 
-  shape.closePath(); // Close the path to complete the star
+  shape.closePath(); // Close the shape to complete the flower
 
   const extrudeSettings = {
     depth: 5, // Thickness of the cylinder
@@ -126,10 +128,10 @@ function createStar(innerRadius, outerRadius, points) {
 }
 
 
-
 function createOceanMesh(){
     const oceanMesh = new THREE.Mesh(
-      createStar(STAR_INNER_RADIUS, STAR_OUTER_RADIUS, STAR_SIDES),
+    //   createStar(STAR_INNER_RADIUS, STAR_OUTER_RADIUS, STAR_SIDES),
+      createStar(STAR_PRONGS, STAR_RADIUS, STAR_PETAL_DEPTH),
       waterMaterial
     );
     return oceanMesh
