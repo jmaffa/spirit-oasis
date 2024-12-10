@@ -23,7 +23,8 @@ import {
 import { waterMesh } from './pond.js';
 import { createOceanMesh, updateWater, INIT_BLOOM } from './ocean-water.js';
 import Cubemap from './cubemap.js';
-import { updateTui, updateLa, bezierCurve } from './fish.js';
+import { updateTui, updateLa, bezierCurve, genBezier } from './fish.js';
+import { update } from 'three/examples/jsm/libs/tween.module.js';
 
 let spotLight;
 
@@ -34,10 +35,11 @@ const fishArr = [];
 let tuiTime = 0;
 let laTime = 0;
 let laSpeed = 0.002;
-let tuiCurve = bezierCurve(true);
-let laCurve = bezierCurve(false);
+let tuiCurve = bezierCurve(new THREE.Vector3(0, 0, 2), true);
+let laCurve = genBezier(new THREE.Vector3(0, 0, -2), false);
 const lightTransitionSpeed = 0.08;
 const redMoonHSL = [0, 1, 1];
+let isDragging = false;
 
 // Flag to toggle bloom effect in "ocean"
 let bloomOn = false;
@@ -218,10 +220,11 @@ function init() {
 
    // DRAG CONTROLS for fish
   dragControls = new DragControls( fishArr, camera, renderer.domElement)
+  dragControls.transformGroup = true;
   dragControls.addEventListener( 'dragstart', function ( event ) {
     controls.enabled = false;
-    laSpeed = 0;
-    
+    // laSpeed = 0;
+    isDragging = true;
     // event.object.material.emissive.set( 0xaaaaaa );
     // spotLight.color.setHSL(redMoonHSL[0], redMoonHSL[1], redMoonHSL[2]);
     // spotLight.intensity = 20;
@@ -229,9 +232,9 @@ function init() {
   
   dragControls.addEventListener( 'dragend', function ( event ) {
     controls.enabled = true;
+    isDragging = false;
     // event.object.material.emissive.set( 0x000000 );
-    event.object.position.y = 0;
-    laSpeed = 0.001;
+    // laSpeed = 0.001;
     // spotLight.color.setHex(0xffffff);
     // spotLight.intensity = 10;
   } );
@@ -267,25 +270,57 @@ function animate() {
   if (tui) {
     if (tuiTime > 1) {
       tuiTime = 0;
-      tuiCurve = bezierCurve(true);
+      tuiCurve = bezierCurve(tui.position, true);
     }
     updateTui(tui, tuiCurve, tuiTime);
     tuiTime += 0.002;
   }
 
   if (la) {
+    spotLight.intensity = la.position.y * 10 + 10;
+    // console.log("la position " + la.position.x + la.position.y + la.position.z);
+
+    if (laTime == 0 && la.position.y == 0 && !isDragging) {
+      console.log("la curve regenerated");
+      console.log("la position " + la.position.x+ " " + la.position.y + " "+la.position.z);
+      // laCurve = bezierCurve(la.position, false);
+      laCurve = genBezier(la.position, false);
+      // laTime += laSpeed;
+    }
     if (laTime > 1) {
       laTime = 0;
-      laCurve = bezierCurve(false);
     }
-    updateLa(la, laCurve, laTime);
-    laTime += laSpeed;
 
-    if (laSpeed == 0) {
-      spotLight.color.setHSL(0, Math.min(la.position.y / 2.5, 1), 1);
-      console.log(la.position.y);
-      // spotLight.intensity = 20;
+    if (!isDragging) {
+      if (la.position.y == 0) {
+        updateLa(la, laCurve, laTime);
+        laTime += laSpeed;
+      } else {
+        console.log("la falling position " + la.position.x+ " " + la.position.y + " "+la.position.z);
+
+        la.position.y -= 0.35;
+        if (la.position.y < 0) {
+          la.position.y = 0;
+          laCurve = genBezier(la.position, false);
+        }
+      }
+    } else {
+      laTime = 0;
     }
+
+    // if (laTime > 1) {
+    //   laTime = 0;
+    //   laCurve = bezierCurve(false);
+    // }
+
+    // if (laSpeed == 0) {
+    //   spotLight.color.setHSL(1, 1, 1);
+    //   console.log(la.position.y);
+    //   spotLight.intensity = la.position.y * 10 + 10;
+    // } else {
+    //   updateLa(la, laCurve, laTime);
+    //   laTime += laSpeed;
+    // }
   }
 
 
