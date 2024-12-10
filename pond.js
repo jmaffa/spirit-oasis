@@ -5,6 +5,7 @@
  */
 
 import * as THREE from 'three';
+import Cubemap from './cubemap';
 const textureLoader = new THREE.TextureLoader();
 const waterTexture = textureLoader.load('textures/xneg.jpg');
 
@@ -18,23 +19,27 @@ waterTexture.magFilter = THREE.LinearFilter;
 const planeGeometry = new THREE.PlaneGeometry(1, 1, 256, 256);
 
 const vertexShader = `
-  varying vec2 uv_coord; // pass UV coordinates to the fragment shader
-  void main() {
-    uv_coord = uv; // take uv given by THREE js
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); // todo check - are matrices given by three js
-  }
-`;
+    varying vec2 vUv;
+    uniform float time;
+    void main() {
+      vUv = uv;
+      vec3 pos = position;
+      pos.z += sin(uv.x * 50.0 + time) * 0.04; // Add rippling effect
+      pos.z += cos(uv.y * 40.0 + time) * 0.04; // Combine for more natural movement
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+    }
+  `;
 
 const fragmentShader = `
-  varying vec2 uv_coord; // Receive UV coordinates from the vertex shader
-  uniform sampler2D waterTexture; // Reference to the texture (e.g., heightmap)
-  uniform float time; // A time variable to animate the effect
+uniform sampler2D waterTexture; // Use 2D texture instead of cubemap
+uniform vec3 uColor; // Base color of the water
+uniform float opacity; // Water transparency
+varying vec2 vUv; // UV coordinates from the vertex shader
 
-  void main() {
-    vec2 coords = uv_coord + vec2(sin(time * 0.1), cos(time * 0.1)) * 0.01; // Add a wavy motion
-    float height = texture2D(waterTexture, coords).r; // Sample height from texture
-    vec3 color = vec3(0.0, 0.5 + height * 0.5, 1.0); // Map height to color (blueish water)
-    gl_FragColor = vec4(color, 1.0); // Set the output color
+void main() {
+    vec4 textureColor = texture2D(waterTexture, vUv); // Sample the texture
+    vec3 color = mix(textureColor.rgb, uColor, 0.5); // Blend with the base color
+    gl_FragColor = vec4(color, opacity); // Apply transparency
   }
 `;
 
@@ -66,12 +71,14 @@ const waterMaterial = new THREE.ShaderMaterial({
     vertexShader,
     fragmentShader,
     uniforms: {
-        waterTexture: { value: waterTexture }, // Pass the water texture
-        time: { value: 0.0 } // Initialize the time variable
+        time: { value: 0 },
+        waterTexture: { value: waterTexture }, // Use the loaded texture
+        uColor: { value: new THREE.Color(0x156289) }, // Base color of the water
+        opacity: { value: 0.7 }, // Transparency
     },
-    transparent: true, 
-    opacity: 0.6, // TODO claire adjust
-})
+    transparent: true,
+    // opacity: 0.6
+});
 
 const renderTargetA = new THREE.WebGLRenderTarget(256, 256, { type: THREE.FloatType });
 const renderTargetB = new THREE.WebGLRenderTarget(256, 256, { type: THREE.FloatType });

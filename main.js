@@ -31,7 +31,7 @@ let spotLight, lightHelper;
 let bloomOn = false;
 // Constants to change "ocean" position
 const OCEAN_X = 0;
-const OCEAN_Y = -3;
+const OCEAN_Y = -4; // CLAIRE lowered slightly
 const OCEAN_Z = 0;
 
 const ISLAND_X = 0;
@@ -178,21 +178,13 @@ function init() {
   
   // CREATE ISLAND
   // TODO: make this more exciting.
-  setupIsland();
+  // setupIsland();
 
   setupBridges();
 
   // CREATE "MOUNTAIN LAND"
   // TODO: work on this
   setUpMountains();
-
-  // CREATE OCEAN
-  // TODO: Joe: Water shading.
-  setupOcean();
-  
-  // CREATE ISLAND
-  // TODO: make this more exciting.
-  setupIsland();
 
   // CREATE "MOUNTAIN LAND"
   // TODO: work on this
@@ -206,26 +198,6 @@ function init() {
   // cube.rotation.z = Math.PI / 2; // Rotate to lay on the long side
   // scene.add(cube);
 
-  // CREATE POND CYLINDER
-  const pondGeometry = new THREE.CylinderGeometry(2.5, 2.5, 0.5, 64); // radiusTop, radiusBottom, height, radialSegments
-  const pondMaterial = new THREE.MeshStandardMaterial({
-    color: 0x156289,
-    emissive: 0x072534,
-    metalness: 0.5,
-    roughness: 0.7,
-    side: THREE.DoubleSide,
-  }); // TODO claire check and modify
-
-  const pond = new THREE.Mesh(pondGeometry, pondMaterial);
-  pond.position.y = -0.25; // Position it slightly below w ater mesh
-  // scene.add(pond);
-
-  // ADD WATER MESH
-  waterMesh.geometry = new THREE.PlaneGeometry(5, 5, 256, 256); // Match the pond's size
-  waterMesh.rotation.x = -Math.PI / 2; // Lay flat
-  waterMesh.position.y = 0; // Position at the top of the pond
-  // scene.add(waterMesh);
-
   // LOAD CUBEMAP
   cubemap = new Cubemap({
     xpos: 'textures/xpos.png', // TODO claire - files need to include sky reflection
@@ -235,9 +207,32 @@ function init() {
     zpos: 'textures/zpos.png',
     zneg: 'textures/zneg.png',
   });
+  
+  // CREATE POND CYLINDER WITH TRANSPARENCY
+  const pondGeometry = new THREE.CylinderGeometry(2.5, 2.5, 0.5, 64); // radiusTop, radiusBottom, height, radialSegments
+  const pondMaterial = new THREE.MeshStandardMaterial({
+    color: 0x156289,
+    emissive: 0x072534,
+    metalness: 0.5,
+    roughness: 0.7,
+    side: THREE.DoubleSide,
+    transparent: true,
+    opacity: 0.5,  // Control transparency for the sides of the pond
+    refractionRatio: 0.98,  // Simulate refraction for water
+  });
 
-  scene.background = cubemap.texture;
-  waterMesh.material.uniforms.uCubemap = { value: cubemap.texture };
+  // This creates the pond as a cylinder
+  const pond = new THREE.Mesh(pondGeometry, pondMaterial);
+  pond.position.y = 1.8; // Position it slightly below the water mesh to create the "pond" look
+  scene.add(pond);
+
+  // ADD WATER MESH AS A TEXTURE ON THE POND
+  waterMesh.geometry = new THREE.PlaneGeometry(5, 5, 256, 256); // Water mesh size matches the pond
+  waterMesh.rotation.x = -Math.PI / 2; // Flat water mesh
+  waterMesh.position.y = 2.5; // Place the water mesh above the pond (slightly inside)
+
+  // Add the water mesh on top of the pond
+  scene.add(waterMesh);
 
   // MOUSE ROTATION CONTROLS
   const controls = new OrbitControls(camera, renderer.domElement);
@@ -273,7 +268,7 @@ function animate() {
   updateWater(bloomOn);
   
   // update the water's time uniform
-  waterMesh.material.uniforms.time.value += 0.1;
+  waterMesh.material.uniforms.time.value += 0.03;
 
   // TODO claire update cubemap texture potentially
 
