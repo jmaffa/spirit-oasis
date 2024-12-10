@@ -178,7 +178,7 @@ function init() {
   
   // CREATE ISLAND
   // TODO: make this more exciting.
-  setupIsland();
+  // setupIsland();
 
   setupBridges();
 
@@ -189,10 +189,6 @@ function init() {
   // CREATE OCEAN
   // TODO: Joe: Water shading.
   setupOcean();
-  
-  // CREATE ISLAND
-  // TODO: make this more exciting.
-  setupIsland();
 
   // CREATE "MOUNTAIN LAND"
   // TODO: work on this
