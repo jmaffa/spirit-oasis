@@ -10,8 +10,8 @@ const WAVE_THRESHHOLD_LOW = INIT_WAVE;
 const WAVE_THRESHHOLD_HIGH = 0.3;
 
 
-const STAR_RADIUS = 6;
-const STAR_PETAL_DEPTH = 4;
+const STAR_RADIUS = 9;
+const STAR_PETAL_DEPTH = 6;
 const STAR_PRONGS = 5;
 
 const vertShader = `

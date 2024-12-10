@@ -82,7 +82,7 @@ function setupIsland(){
 }
 
 function setUpMountains(){
-  const mountainGeometry = new THREE.CylinderGeometry(7, 7, 20, 32);
+  const mountainGeometry = new THREE.CylinderGeometry(10, 10, 50, 32);
   const mountainMaterial = new THREE.MeshBasicMaterial({
     color: 0x0000ff, // Inside color
     // transparent: true, // Make the material transparent/
@@ -186,7 +186,7 @@ function init() {
 
   // CREATE "MOUNTAIN LAND"
   // TODO: work on this
-  // setUpMountains();
+  setUpMountains();
 
   // CREATE CUBE
   // const geometry = new THREE.BoxGeometry(1, 2, 1);
