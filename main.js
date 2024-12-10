@@ -65,7 +65,6 @@ function setupOcean(){
   const water = createOceanMesh()
   water.position.set(OCEAN_X, OCEAN_Y, OCEAN_Z);
   water.rotation.x = -Math.PI / 2;
-  // water.rotation.y = Math.PI / 6;
   water.rotation.z = -Math.PI / 2;
   scene.add(water);
 }
@@ -146,7 +145,6 @@ function setupBridges(){
   );
 }
 
-
 function init() {
   // // SET UP SCENE
   scene = new THREE.Scene();
@@ -188,6 +186,18 @@ function init() {
   // TODO: work on this
   setUpMountains();
 
+  // CREATE OCEAN
+  // TODO: Joe: Water shading.
+  setupOcean();
+  
+  // CREATE ISLAND
+  // TODO: make this more exciting.
+  setupIsland();
+
+  // CREATE "MOUNTAIN LAND"
+  // TODO: work on this
+  // setUpMountains();
+  
   // CREATE CUBE
   // const geometry = new THREE.BoxGeometry(1, 2, 1);
   // const material = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
