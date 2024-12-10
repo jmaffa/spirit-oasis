@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import {
   color,
   vec2,
@@ -30,8 +31,17 @@ let spotLight, lightHelper;
 let bloomOn = false;
 // Constants to change "ocean" position
 const OCEAN_X = 0;
-const OCEAN_Y = -6;
+const OCEAN_Y = -3;
 const OCEAN_Z = 0;
+
+const ISLAND_X = 0;
+const ISLAND_Y = 0;
+const ISLAND_Z = 0;
+const ISLAND_RADIUS = 3;
+
+const BRIDGE_X = -4;
+const BRIDGE_Y = 2;
+const BRIDGE_Z = 2;
 
 init();
 
@@ -55,18 +65,19 @@ function setupOcean(){
   const water = createOceanMesh()
   water.position.set(OCEAN_X, OCEAN_Y, OCEAN_Z);
   water.rotation.x = -Math.PI / 2;
-  // water.rotation.z = -Math.PI / 2;
+  // water.rotation.y = Math.PI / 6;
+  water.rotation.z = -Math.PI / 2;
   scene.add(water);
 }
 
 function setupIsland(){
-  const islandGeometry = new THREE.CylinderGeometry(3, 3, 5, 32);
+  const islandGeometry = new THREE.CylinderGeometry(ISLAND_RADIUS, ISLAND_RADIUS, 5, 32);
   const islandMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
   const island = new THREE.Mesh(
     islandGeometry,
     islandMaterial
   )
-  island.position.set(0,-3,0);
+  island.position.set(ISLAND_X, ISLAND_Y, ISLAND_Z);
   scene.add(island);
 }
 
@@ -87,6 +98,54 @@ function setUpMountains(){
   scene.add(mountain);
 }
 
+function setupBridges(){
+  const loader = new GLTFLoader();
+  loader.load(
+    "assets/bridge.glb", // URL to your .glb file
+    (gltf) => {
+      const model1 = gltf.scene; // Access the loaded model
+      const model2 = model1.clone();
+
+      // Scale the model
+      model1.scale.set(0.5, 0.5, 0.5);
+
+      // Position the model
+      model1.position.set(BRIDGE_X, BRIDGE_Y, BRIDGE_Z);
+      model1.rotation.set(
+        0, 
+        // 0,
+        (5 * Math.PI / 3), 
+        0 // No rotation around the z-axis
+      );
+
+      // Add the model to the scene
+      
+      
+      // Scale the model
+      model2.scale.set(0.5, 0.5, 0.5);
+
+      // Position the model
+      model2.position.set(-BRIDGE_X, BRIDGE_Y, BRIDGE_Z);
+      model2.rotation.set(
+        0, // Rotate 45 degrees around the x-axis
+        7 * Math.PI / 3, // Rotate 90 degrees around the y-axis
+        // 0,
+        0 // No rotation around the z-axis
+      );
+      scene.add(model1);
+      scene.add(model2);
+
+      // scene.add(model); // Add it to the scene
+    },
+    (xhr) => {
+      console.log((xhr.loaded / xhr.total) * 100 + "% loaded"); // Progress callback
+    },
+    (error) => {
+      console.error("An error happened:", error); // Error callback
+    }
+  );
+}
+
 
 function init() {
   // // SET UP SCENE
@@ -95,7 +154,7 @@ function init() {
 
   // // SET UP CAMERA
   camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-  camera.position.set(3, 3, 6);
+  camera.position.set(3, 10, 6);
 
   // SET UP RENDERER
   renderer = new THREE.WebGLRenderer( { antialias: true } );
@@ -105,11 +164,15 @@ function init() {
   document.body.appendChild( renderer.domElement );
 
   // ADD SPOT LIGHT
-  const spotLight = new THREE.SpotLight(0xffffff, 10);
-  spotLight.position.set(2.5, 5, 2.5);
-  spotLight.angle = Math.PI / 6;
-  spotLight.castShadow = true;
-  scene.add(spotLight);
+  // const spotLight = new THREE.SpotLight(0xffffff, 10);
+  // spotLight.position.set(0, 5, 0);
+  // spotLight.angle = Math.PI / 6;
+  // spotLight.castShadow = false;
+  // scene.add(spotLight);
+
+  const pointLight = new THREE.PointLight(0xffffff, 10);
+  pointLight.position.set(0,5,0);
+  scene.add(pointLight);
 
   // CREATE OCEAN
   // TODO: Joe: Water shading.
@@ -118,6 +181,8 @@ function init() {
   // CREATE ISLAND
   // TODO: make this more exciting.
   setupIsland();
+
+  setupBridges();
 
   // CREATE "MOUNTAIN LAND"
   // TODO: work on this
