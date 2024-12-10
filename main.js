@@ -25,12 +25,19 @@ import { createOceanMesh, updateWater, INIT_BLOOM } from './ocean-water.js';
 import Cubemap from './cubemap.js';
 import { updateTui, updateLa, bezierCurve } from './fish.js';
 
+let spotLight;
+
 let renderer, scene, camera, cubemap, dragControls;
 let tui, la;
 let laModel;
 const fishArr = [];
-let fishTime = 0;
-let tuiCurve = bezierCurve();;
+let tuiTime = 0;
+let laTime = 0;
+let laSpeed = 0.002;
+let tuiCurve = bezierCurve(true);
+let laCurve = bezierCurve(false);
+const lightTransitionSpeed = 0.08;
+const redMoonHSL = [0, 1, 1];
 
 // Flag to toggle bloom effect in "ocean"
 let bloomOn = false;
@@ -98,7 +105,7 @@ function setUpMountains(){
 function setUpFish() {
   const loader = new GLTFLoader();
 
-  const scale = 0.15;
+  const scale = 0.1;
   loader.load("assets/white_fish.glb", function (gltf) {
     tui = gltf.scene;
     tui.position.set(0, 0, 2);
@@ -119,7 +126,6 @@ function setUpFish() {
   });
 }
 
-
 function init() {
   // // SET UP SCENE
   scene = new THREE.Scene();
@@ -137,7 +143,9 @@ function init() {
   document.body.appendChild( renderer.domElement );
 
   // ADD SPOT LIGHT
-  const spotLight = new THREE.SpotLight(0xffffff, 10);
+  spotLight = new THREE.SpotLight();
+  spotLight.color.setHSL(0, 0, 1);
+  spotLight.intensity = 10;
   spotLight.position.set(2.5, 5, 2.5);
   spotLight.angle = Math.PI / 6;
   spotLight.castShadow = true;
@@ -208,19 +216,24 @@ function init() {
   controls.target.set(0, 0, 0);
   controls.update();
 
+   // DRAG CONTROLS for fish
   dragControls = new DragControls( fishArr, camera, renderer.domElement)
   dragControls.addEventListener( 'dragstart', function ( event ) {
     controls.enabled = false;
-    event.object.material.emissive.set( 0xaaaaaa );
-    spotLight.color.setHex(0x00ff00);
-  
+    laSpeed = 0;
+    
+    // event.object.material.emissive.set( 0xaaaaaa );
+    // spotLight.color.setHSL(redMoonHSL[0], redMoonHSL[1], redMoonHSL[2]);
+    // spotLight.intensity = 20;
   } );
   
   dragControls.addEventListener( 'dragend', function ( event ) {
     controls.enabled = true;
-    event.object.material.emissive.set( 0x000000 );
+    // event.object.material.emissive.set( 0x000000 );
     event.object.position.y = 0;
-    spotLight.color.setHex(0xffffff);
+    laSpeed = 0.001;
+    // spotLight.color.setHex(0xffffff);
+    // spotLight.intensity = 10;
   } );
   
   setupKeyPressInteraction();
@@ -252,17 +265,30 @@ function animate() {
   // TODO claire update cubemap texture potentially
 
   if (tui) {
-  // fish timer
-  if (fishTime == 0) {
-    tuiCurve = bezierCurve();
-  } else if (fishTime > 1) {
-    fishTime = 0;
-  }
-  updateTui(tui, tuiCurve, fishTime);
-
+    if (tuiTime > 1) {
+      tuiTime = 0;
+      tuiCurve = bezierCurve(true);
+    }
+    updateTui(tui, tuiCurve, tuiTime);
+    tuiTime += 0.002;
   }
 
-  fishTime += 0.01;
+  if (la) {
+    if (laTime > 1) {
+      laTime = 0;
+      laCurve = bezierCurve(false);
+    }
+    updateLa(la, laCurve, laTime);
+    laTime += laSpeed;
+
+    if (laSpeed == 0) {
+      spotLight.color.setHSL(0, Math.min(la.position.y / 2.5, 1), 1);
+      console.log(la.position.y);
+      // spotLight.intensity = 20;
+    }
+  }
+
+
 
   renderer.render(scene, camera);
 }
