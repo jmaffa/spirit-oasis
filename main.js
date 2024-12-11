@@ -40,11 +40,11 @@ let isTuiDragging, isLaDragging = false;
 let bloomOn = false;
 // Constants to change "ocean" position
 const OCEAN_X = 0;
-const OCEAN_Y = -4; // CLAIRE lowered slightly
+const OCEAN_Y = -3.8; // TODO need ocean to stay under island
 const OCEAN_Z = 0;
 
 const ISLAND_X = 0;
-const ISLAND_Y = 1.2;
+const ISLAND_Y = 1.5;
 const ISLAND_Z = 0;
 
 init();
