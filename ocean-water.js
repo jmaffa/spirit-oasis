@@ -222,7 +222,7 @@ function createOceanMesh(){
     return oceanMesh
 }
 
-function updateWater(bloomOn) {
+function updateOcean(bloomOn) {
   waterMaterial.uniforms.time.value += 0.05;
   if (
     bloomOn &&
@@ -256,4 +256,4 @@ function updateWater(bloomOn) {
   }
 }
 
-export { createOceanMesh, updateWater, INIT_BLOOM };
+export { createOceanMesh, updateOcean, INIT_BLOOM };
