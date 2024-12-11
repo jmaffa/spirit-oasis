@@ -3,7 +3,30 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { DragControls } from 'three/addons/controls/DragControls.js';
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
+import {
+  color,
+  vec2,
+  pass,
+  linearDepth,
+  normalWorld,
+  triplanarTexture,
+  texture,
+  objectPosition,
+  screenUV,
+  viewportLinearDepth,
+  viewportDepthTexture,
+  viewportSharedTexture,
+  mx_worley_noise_float,
+  positionWorld,
+  time,
+} from "three/tsl";
+
+import {setUpRain, setUpSplash, updateRain, updateSplash } from './waterfall.js';
+
+import { createGrassPatch } from './Grass.js';
+
 import {setUpWaterfallMesh, setUpSplash, updateWaterfall, updateSplash } from './waterfall.js';
+
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
@@ -31,9 +54,6 @@ const redMoonColor = new THREE.Color(1, 0, 0);
 const whiteMoonColor = new THREE.Color(1, 1, 1);
 let isTuiDragging, isLaDragging = false;
 let godRays = [];
-
-
-
 
 // Flag to toggle bloom effect in "ocean"
 let bloomOn = false;
@@ -138,6 +158,9 @@ function setUpMountains(){
 
 }
 
+/**
+ * Sets up island
+ */
 function setupIsland(){
   const loader = new GLTFLoader();
   loader.load(
@@ -172,6 +195,7 @@ function setupIsland(){
     }
   );
 }
+
 /**
  * Sets up fish
  */
@@ -205,7 +229,9 @@ function setUpPondWater() {
   document.addEventListener('mousemove', (event) => onMouseMove(event, renderer, camera));
 }
 
-// SET UP WATERCOLOR SHADER
+/**
+ * Sets up watercolor shader
+ */
 const composer = new EffectComposer(renderer);
 const renderPass = new RenderPass(scene, camera);
 
@@ -216,17 +242,28 @@ const watercolorEffect = new ShaderPass(WatercolorShader);
 watercolorEffect.uniforms['tPaper'].value = paperTexture; // Use previously loaded paper texture
 watercolorEffect.uniforms['texel'].value = new THREE.Vector2(1.0 / window.innerWidth, 1.0 / window.innerHeight);
 
-// TESTING: Colorify to Red 
-const colorify = new ShaderPass(ColorifyShader);
-colorify.uniforms["color"].value.setRGB(1,0,0);
-
-composer.addPass(renderPass);
-composer.addPass(watercolorEffect);
-
+/**
+ * Sets up waterfall
+ */
 function setUpWaterfall(){
 
   scene.add(setUpWaterfallMesh());
   scene.add(setUpSplash());
+}
+
+/**
+ * Sets up grass
+ */
+async function setUpGrass() {
+  const GRASS_MODEL_URL = 'assets/grass.glb';
+
+  console.log("Loading grass patches...");
+
+  for (let i = 0; i < 100; i++) {
+    await createGrassPatch(scene, GRASS_MODEL_URL);
+  }
+
+  console.log("Grass patches loaded.");
 }
 
 function init() {
@@ -245,13 +282,6 @@ function init() {
   renderer.setSize( window.innerWidth, window.innerHeight );
   // renderer.setAnimationLoop( animate );
   document.body.appendChild( renderer.domElement );
-
-  // ADD SPOT LIGHT
-  // const spotLight = new THREE.SpotLight(0xffffff, 10);
-  // spotLight.position.set(0, 5, 0);
-  // spotLight.angle = Math.PI / 6;
-  // spotLight.castShadow = false;
-  // scene.add(spotLight);
 
   pointLight1 = new THREE.PointLight(0xffffff, 30);
   pointLight1.position.set(0,5,3);
@@ -273,6 +303,7 @@ function init() {
   // CREATE OCEAN
   setupOcean();
   
+  createRain();
   // CREATE WATERFALL
   setUpWaterfall();
 
@@ -320,7 +351,12 @@ function init() {
   window.addEventListener("resize", onWindowResize);
 
   const clock = new THREE.Clock();
-  renderer.setAnimationLoop(animate);
+  
+  // LOAD GRASS THEN ANIMATE
+  setUpGrass().then(() => {
+    console.log("Assets loaded!");
+    renderer.setAnimationLoop(animate); // start animation loop after loading
+  }); 
 }
 
 function onWindowResize() {
