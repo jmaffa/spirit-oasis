@@ -20,8 +20,8 @@ import {
   time,
 } from "three/tsl";
 
-import { waterMesh } from './pond.js';
-import { createOceanMesh, updateWater, INIT_BLOOM } from './ocean-water.js';
+import { updatePondWater, waterMesh } from './pond.js';
+import { createOceanMesh, updateOcean, INIT_BLOOM } from './ocean-water.js';
 import { updateSimulation, onMouseMove } from './pond-simulation.js';
 import { genBezier, animateFish } from './fish.js';
 import { update } from 'three/examples/jsm/libs/tween.module.js';
@@ -239,7 +239,8 @@ function onWindowResize() {
 function animate() {
 
   // Moves water and controls bloom based on `b` keypress
-  updateWater(bloomOn);
+  updateOcean(bloomOn);
+  updatePondWater(bloomOn);
   
   // Update the water's time uniform
   waterMesh.material.uniforms.time.value += 0.03;
