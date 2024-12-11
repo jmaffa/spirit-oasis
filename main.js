@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { DragControls } from 'three/addons/controls/DragControls.js';
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import {
   color,
@@ -22,10 +23,18 @@ import {
 import { waterMesh } from './pond.js';
 import { createOceanMesh, updateWater, INIT_BLOOM } from './ocean-water.js';
 import Cubemap from './cubemap.js';
+import { genBezier, animateFish } from './fish.js';
+import { update } from 'three/examples/jsm/libs/tween.module.js';
 
-let renderer, scene, camera, cubemap;
+let pointLight;
 
-let spotLight, lightHelper;
+let renderer, scene, camera, cubemap, dragControls;
+let tui, la;
+const fishArr = [];
+let tuiTime = 0;
+let laTime = 0;
+const redMoonHSL = [0, 1, 1];
+let isDragging = false;
 
 // Flag to toggle bloom effect in "ocean"
 let bloomOn = false;
@@ -104,6 +113,29 @@ function setupIsland(){
     }
   );
 }
+/**
+ * Sets up fish
+ */
+function setUpFish() {
+  const loader = new GLTFLoader();
+
+  const scale = 0.07;
+  loader.load("assets/white_fish.glb", function (gltf) {
+    tui = gltf.scene;
+    tui.scale.set(scale, -scale, scale);
+    tui.position.set(0, 2.2, 2);
+    scene.add(tui);
+    fishArr.push(tui);
+  });
+
+  loader.load("assets/black_fish.glb", function (gltf) {
+    la = gltf.scene;
+    la.scale.set(scale, -scale, scale);
+    la.position.set(0, 2.2, -2);
+    scene.add(la);
+    fishArr.push(la);
+  });
+}
 
 function init() {
   // // SET UP SCENE
@@ -128,7 +160,7 @@ function init() {
   // spotLight.castShadow = false;
   // scene.add(spotLight);
 
-  const pointLight = new THREE.PointLight(0xffffff, 10);
+  pointLight = new THREE.PointLight(0xffffff, 10);
   pointLight.position.set(0,5,0);
   scene.add(pointLight);
 
@@ -139,6 +171,9 @@ function init() {
   // CREATE ISLAND
   // TODO: need to replace file after baking wood texture
   setupIsland();
+
+  // CREATE FISH
+  setUpFish();
 
   // CREATE "MOUNTAIN LAND"
   // TODO: work on this
@@ -193,11 +228,22 @@ function init() {
   controls.maxPolarAngle = Math.PI * 1 / 3;
   controls.target.set(0, 0, 0);
   controls.update();
+
+   // DRAG CONTROLS for fish
+  dragControls = new DragControls( fishArr, camera, renderer.domElement)
+  dragControls.transformGroup = true;
+  dragControls.addEventListener( 'dragstart', function ( event ) {
+    controls.enabled = false;
+    isDragging = true;
+  } );
+  
+  dragControls.addEventListener( 'dragend', function ( event ) {
+    controls.enabled = true;
+    isDragging = false;
+  } );
   
   setupKeyPressInteraction();
   window.addEventListener("resize", onWindowResize);
-
-  
 
   const clock = new THREE.Clock();
   renderer.setAnimationLoop(animate);
@@ -209,6 +255,7 @@ function onWindowResize() {
 
   renderer.setSize(window.innerWidth, window.innerHeight);
 }
+
 
 function animate() {
 
@@ -222,6 +269,18 @@ function animate() {
   waterMesh.material.uniforms.time.value += 0.1;
 
   // TODO claire update cubemap texture potentially
+
+  if (tui) {
+    tuiTime = animateFish(tui, 0, pointLight, tuiTime, isDragging);
+  }
+
+  if (la) {
+    laTime = animateFish(la, 1, pointLight, laTime, isDragging);
+  }
+
+  if (tui && la) {
+    pointLight.intensity = Math.max(tui.position.y, la.position.y) * 10 + 10; // light increases as fish position gets higher
+  }
 
   renderer.render(scene, camera);
 }
