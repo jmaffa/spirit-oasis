@@ -1,6 +1,14 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+
+import { WatercolorShader } from './Watercolor.js';
+
 import { DragControls } from 'three/addons/controls/DragControls.js';
+
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import {
   color,
@@ -62,11 +70,25 @@ function setupKeyPressInteraction() {
   });
 }
 
+// Sets up and passes in watercolor shader
+const composer = new EffectComposer(renderer);
+const renderPass = new RenderPass(scene, camera);
+
+const textureLoader = new THREE.TextureLoader();
+const paperTexture = textureLoader.load('./textures/paper.png')
+
+const watercolorEffect = new ShaderPass(WatercolorShader);
+watercolorEffect.uniforms['tPaper'].value = paperTexture; // Use previously loaded paper texture
+watercolorEffect.uniforms['texel'].value = new THREE.Vector2(1.0 / window.innerWidth, 1.0 / window.innerHeight);
+
+composer.addPass(renderPass);
+composer.addPass(watercolorEffect);
+
 /**
  * Sets up ocean and initializes its position
  */
 function setupOcean(){
-  const water = createOceanMesh()
+  const water = createOceanMesh();
   water.position.set(OCEAN_X, OCEAN_Y, OCEAN_Z);
   water.rotation.x = -Math.PI / 2;
   water.rotation.z = -Math.PI / 2;
@@ -90,12 +112,28 @@ function setUpMountains(){
   scene.add(mountain);
 }
 
+
 function setupIsland(){
   const loader = new GLTFLoader();
   loader.load(
     "assets/island_v2.glb", // URL to your .glb file
     (gltf) => {
       const model1 = gltf.scene; // Access the loaded model
+
+      // Apply Toon Shader
+      model1.traverse((child) => {
+        if (child.isMesh) {
+          const originalColor = child.material.color.clone();
+          child.material = new THREE.MeshToonMaterial({
+            color: originalColor,
+            emissive: child.material.emissive.clone(),
+            map: child.material.map,
+            normalMap: child.material.normalMap,
+            transparent: child.material.transparent,
+            opacity: child.material.opacity,
+          });
+        }
+      });
 
       // Scale the model
       model1.scale.set(0.35, 0.35, 0.35);
@@ -169,9 +207,17 @@ function init() {
   // spotLight.castShadow = false;
   // scene.add(spotLight);
 
-  pointLight = new THREE.PointLight(0xffffff, 10);
-  pointLight.position.set(0,5,0);
+  const pointLight = new THREE.PointLight(0xffffff, 30);
+  pointLight.position.set(0,5,1);
+
   scene.add(pointLight);
+
+  // const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+  // dirLight.position.set(10, 20, 10);
+  // dirLight.castShadow = true;
+  // dirLight.shadow.mapSize.width = 2048;
+  // dirLight.shadow.mapSize.height = 2048;
+  // scene.add(dirLight);
 
   // CREATE OCEAN
   // TODO: Joe: Water shading.
@@ -246,6 +292,10 @@ function animate() {
   waterMesh.material.uniforms.time.value += 0.03;
 
   updateSimulation(renderer);
+
+  // renderer.render(scene, camera);
+  composer.render();
+}
 
   if (tui) {
     tuiTime = animateFish(tui, 0, pointLight, tuiTime, isTuiDragging);
