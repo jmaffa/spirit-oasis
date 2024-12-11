@@ -17,6 +17,7 @@ import { createOceanMesh, updateOcean } from './ocean-water.js';
 import { updateSimulation, onMouseMove } from './pond-simulation.js';
 import { genBezier, animateFish } from './fish.js';
 import { update } from 'three/examples/jsm/libs/tween.module.js';
+import { createMountainMesh } from './mountains.js';
 
 let pointLight1;
 let pointLight2;
@@ -71,22 +72,36 @@ function setUpMountains(){
   // const waterfall = createWaterfallMesh();
   // waterfall.position.set(5, 2, 5);
   // scene.add(waterfall);
+  const mountainMeshBack = createMountainMesh(30, 10);
+  mountainMeshBack.position.set(0,3.0,-15.0);
+  mountainMeshBack.rotation.x = -Math.PI / 2; 
+  scene.add(mountainMeshBack)
+
+  const mountainMeshRightBack = createMountainMesh(30, 10);
+  mountainMeshRightBack.position.set(8.0, 3.0, -12.0);
+  mountainMeshRightBack.rotation.x = -Math.PI / 2;
+  mountainMeshRightBack.rotation.z = -Math.PI / 4;
+  scene.add(mountainMeshRightBack)
+
+  const mountainMeshLeftBack = createMountainMesh(30, 10);
+  mountainMeshLeftBack.position.set(-8.0, 3.0, -12.0);
+  mountainMeshLeftBack.rotation.x = -Math.PI / 2;
+  mountainMeshLeftBack.rotation.z = Math.PI / 4;
+  scene.add(mountainMeshLeftBack);
+
+  const mountainMeshLeftFront = createMountainMesh(20, 5);
+  mountainMeshLeftFront.position.set(-9.0, 3.0, 8.0);
+  mountainMeshLeftFront.rotation.x = -Math.PI / 2;
+  mountainMeshLeftFront.rotation.z = - Math.PI / 3;
+  scene.add(mountainMeshLeftFront);
+
+  const mountainMeshRightFront = createMountainMesh(20, 5);
+  mountainMeshRightFront.position.set(9.0, 3.0, 8.0);
+  mountainMeshRightFront.rotation.x = -Math.PI / 2;
+  mountainMeshRightFront.rotation.z = Math.PI / 3;
+  scene.add(mountainMeshRightFront);
 
 
-  const mountainGeometry = new THREE.CylinderGeometry(10, 10, 50, 32);
-  const mountainMaterial = new THREE.MeshBasicMaterial({
-    color: 0x0000ff, // Inside color
-    // transparent: true, // Make the material transparent/
-    opacity: 0.8, // Control transparency level (0 = fully transparent, 1 = fully opaque)
-    side: THREE.BackSide, // Render the inside of the cylinder
-    wireframe: false, // Optional: Turn off wireframe if not needed
-  });
-  const mountain = new THREE.Mesh(
-    mountainGeometry,
-    mountainMaterial
-  )
-  mountain.position.set(0,-5,0);
-  scene.add(mountain);
 }
 
 function setupIsland(){
@@ -190,6 +205,7 @@ function init() {
   // // SET UP SCENE
   scene = new THREE.Scene();
   scene.background = new THREE.Color( 0x18396d );
+  scene.background = new THREE.Color(0xffffff);
 
   // // SET UP CAMERA
   camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
@@ -229,7 +245,7 @@ function init() {
   
   // CREATE ISLAND
   // TODO: need to replace file after baking wood texture
-  setupIsland();
+  // setupIsland();
 
   // CREATE FISH
   setUpFish();
@@ -238,9 +254,6 @@ function init() {
   // TODO: work on this
   // setUpMountains();
 
-  // create waterfall effect
-  // const particleSystem = createParticleSystem();
-  // scene.add(particleSystem);
 
   // CREATE OCEAN
   // TODO: Joe: Water shading.
@@ -249,7 +262,7 @@ function init() {
   createRain();
   // CREATE ISLAND
   // TODO: make this more exciting.
-  // setupIsland();
+  setupIsland();
 
   // CREATE "MOUNTAIN LAND"
   // TODO: work on this
