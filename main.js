@@ -23,8 +23,9 @@ import {
 import { waterMesh } from './pond.js';
 import { createOceanMesh, updateWater, INIT_BLOOM } from './ocean-water.js';
 import Cubemap from './cubemap.js';
-import { genBezier, animateFish } from './fish.js';
+import { animateFish } from './fish.js';
 import { update } from 'three/examples/jsm/libs/tween.module.js';
+import { getRayMaterial, generateCones } from './lights.js';
 
 let pointLight;
 
@@ -33,8 +34,10 @@ let tui, la;
 const fishArr = [];
 let tuiTime = 0;
 let laTime = 0;
-const redMoonHSL = [0, 1, 1];
+const redMoonColor = new THREE.Color(74/255, 4/255, 4/255);
+const whiteMoonColor = new THREE.Color(1, 1, 1);
 let isTuiDragging, isLaDragging = false;
+let godRays = [];
 
 // Flag to toggle bloom effect in "ocean"
 let bloomOn = false;
@@ -164,6 +167,16 @@ function init() {
   pointLight.position.set(0,5,0);
   scene.add(pointLight);
 
+  // const rayMat = getRayMaterial(camera);
+  // const geometry = new THREE.ConeGeometry(10, 20, 32, 1, true); // Open-ended cone
+  // const volumetricLight = new THREE.Mesh(geometry, rayMat);
+  // scene.add(volumetricLight);
+
+  // const geometry2 = new THREE.ConeGeometry(2, 10, 32, 1, true); // Open-ended cone
+  // const volumetricLight2 = new THREE.Mesh(geometry2, rayMat);
+  // scene.add(volumetricLight2);
+
+  godRays = generateCones(scene, camera);
   // CREATE OCEAN
   // TODO: Joe: Water shading.
   setupOcean();
@@ -280,17 +293,12 @@ function animate() {
   // TODO claire update cubemap texture potentially
 
   if (tui) {
-    tuiTime = animateFish(tui, 0, pointLight, tuiTime, isTuiDragging);
+    tuiTime = animateFish(tui, 0, pointLight, tuiTime, isTuiDragging, godRays);
   }
 
   if (la) {
-    laTime = animateFish(la, 1, pointLight, laTime, isLaDragging);
+    laTime = animateFish(la, 1, pointLight, laTime, isLaDragging, godRays);
   }
-
-  if (tui && la) {
-    pointLight.intensity = Math.max(tui.position.y, la.position.y) * 10 + 10; // light increases as fish position gets higher
-  }
-
   renderer.render(scene, camera);
 }
 
