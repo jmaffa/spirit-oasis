@@ -3,7 +3,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { DragControls } from 'three/addons/controls/DragControls.js';
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-import {setUpWaterfall, setUpSplash, updateWaterfall, updateSplash } from './waterfall.js';
+import {setUpWaterfallMesh, setUpSplash, updateWaterfall, updateSplash } from './waterfall.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
@@ -17,6 +17,7 @@ import { createOceanMesh, updateOcean } from './ocean-water.js';
 import { updateSimulation, onMouseMove } from './pond-simulation.js';
 import { genBezier, animateFish } from './fish.js';
 import { update } from 'three/examples/jsm/libs/tween.module.js';
+import { createMountainMesh, createSideLand } from './mountains.js';
 
 let pointLight1;
 let pointLight2;
@@ -33,7 +34,7 @@ let isTuiDragging, isLaDragging = false;
 let bloomOn = false;
 // Constants to change "ocean" position
 const OCEAN_X = 0;
-const OCEAN_Y = -3; // TODO need ocean to stay under island
+const OCEAN_Y = -3.5; // TODO need ocean to stay under island
 const OCEAN_Z = 0;
 
 const ISLAND_X = 0;
@@ -67,26 +68,69 @@ function setupOcean(){
   scene.add(water);
 }
 
+/**
+ * Sets up simple mountains / external land in the scene
+ */
 function setUpMountains(){
-  // const waterfall = createWaterfallMesh();
-  // waterfall.position.set(5, 2, 5);
-  // scene.add(waterfall);
+  const mountainMeshBack = createMountainMesh(30, 10);
+  mountainMeshBack.position.set(0,3.0,-15.0);
+  mountainMeshBack.rotation.x = -Math.PI / 2; 
+  scene.add(mountainMeshBack)
 
+  const mountainMeshRightBack = createMountainMesh(30, 10);
+  mountainMeshRightBack.position.set(8.0, 3.0, -12.0);
+  mountainMeshRightBack.rotation.x = -Math.PI / 2;
+  mountainMeshRightBack.rotation.z = -Math.PI / 4;
+  scene.add(mountainMeshRightBack)
 
-  const mountainGeometry = new THREE.CylinderGeometry(10, 10, 50, 32);
-  const mountainMaterial = new THREE.MeshBasicMaterial({
-    color: 0x0000ff, // Inside color
-    // transparent: true, // Make the material transparent/
-    opacity: 0.8, // Control transparency level (0 = fully transparent, 1 = fully opaque)
-    side: THREE.BackSide, // Render the inside of the cylinder
-    wireframe: false, // Optional: Turn off wireframe if not needed
-  });
-  const mountain = new THREE.Mesh(
-    mountainGeometry,
-    mountainMaterial
-  )
-  mountain.position.set(0,-5,0);
-  scene.add(mountain);
+  const mountainMeshLeftBack = createMountainMesh(30, 10);
+  mountainMeshLeftBack.position.set(-8.0, 3.0, -12.0);
+  mountainMeshLeftBack.rotation.x = -Math.PI / 2;
+  mountainMeshLeftBack.rotation.z = Math.PI / 4;
+  scene.add(mountainMeshLeftBack);
+
+  const mountainMeshLeftFront = createMountainMesh(20, 5);
+  mountainMeshLeftFront.position.set(-9.0, 3.0, 8.0);
+  mountainMeshLeftFront.rotation.x = -Math.PI / 2;
+  mountainMeshLeftFront.rotation.z = - Math.PI / 3;
+  scene.add(mountainMeshLeftFront);
+
+  const mountainMeshRightFront = createMountainMesh(20, 5);
+  mountainMeshRightFront.position.set(9.0, 3.0, 8.0);
+  mountainMeshRightFront.rotation.x = -Math.PI / 2;
+  mountainMeshRightFront.rotation.z = Math.PI / 3;
+  scene.add(mountainMeshRightFront);
+
+  const mountainMeshOutsideFrontRight = createMountainMesh(30, 2);
+  mountainMeshOutsideFrontRight.position.set(3.0, 3.0, 28.0);
+  mountainMeshOutsideFrontRight.rotation.x = -Math.PI / 2;
+  mountainMeshOutsideFrontRight.rotation.z = -Math.PI / 2;
+  scene.add(mountainMeshOutsideFrontRight);
+
+  const mountainMeshOutsideFrontLeft = createMountainMesh(30, 2);
+  mountainMeshOutsideFrontLeft.position.set(-3.0, 3.0, 28.0);
+  mountainMeshOutsideFrontLeft.rotation.x = -Math.PI / 2;
+  mountainMeshOutsideFrontLeft.rotation.z = -Math.PI / 2;
+  scene.add(mountainMeshOutsideFrontLeft);
+
+  // Then the land connected to mountains and bridge
+  const rightFrontLand = createSideLand();
+  rightFrontLand.position.set(9.0, -6.0, 4.0);
+  rightFrontLand.rotation.x = -Math.PI / 2;
+  rightFrontLand.rotation.z = -Math.PI / 6;
+  scene.add(rightFrontLand)
+
+  const leftFrontLand = createSideLand();
+  leftFrontLand.position.set(-9.0, -6.0, 4.0);
+  leftFrontLand.rotation.x = -Math.PI / 2;
+  leftFrontLand.rotation.z = Math.PI / 6;
+  scene.add(leftFrontLand);
+
+  const frontLand = createSideLand();
+  frontLand.position.set(0, -6.0, 26.0);
+  frontLand.rotation.x = -Math.PI / 2;
+  scene.add(frontLand);
+
 }
 
 function setupIsland(){
@@ -173,23 +217,18 @@ colorify.uniforms["color"].value.setRGB(1,0,0);
 
 composer.addPass(renderPass);
 composer.addPass(watercolorEffect);
-// composer.addPass(colorify);
 
-function createRain(){
-  // console.log('test')
-  // const mesh = setUpWaterfall();
-  scene.add(setUpWaterfall());
-  const smokeParticles = setUpSplash();
-  // for(let i = 0; i < smokeParticles.length; i++) {
-  //   scene.add(smokeParticles[i]);
-  // }
-  scene.add(smokeParticles)
+function setUpWaterfall(){
+
+  scene.add(setUpWaterfallMesh());
+  scene.add(setUpSplash());
 }
 
 function init() {
   // // SET UP SCENE
   scene = new THREE.Scene();
   scene.background = new THREE.Color( 0x18396d );
+  // scene.background = new THREE.Color(0xffffff);
 
   // // SET UP CAMERA
   camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
@@ -222,37 +261,19 @@ function init() {
   const light = new THREE.AmbientLight(0x404040); // Soft white light
   scene.add(light);
 
-
-  // CREATE OCEAN
-  // TODO: Joe: Water shading.
-  // setupOcean();
-  
-  // CREATE ISLAND
-  // TODO: need to replace file after baking wood texture
-  setupIsland();
-
   // CREATE FISH
   setUpFish();
   
-  // CREATE "MOUNTAIN LAND"
-  // TODO: work on this
-  // setUpMountains();
-
-  // create waterfall effect
-  // const particleSystem = createParticleSystem();
-  // scene.add(particleSystem);
-
   // CREATE OCEAN
-  // TODO: Joe: Water shading.
   setupOcean();
   
-  createRain();
-  // CREATE ISLAND
-  // TODO: make this more exciting.
-  // setupIsland();
+  // CREATE WATERFALL
+  setUpWaterfall();
 
-  // CREATE "MOUNTAIN LAND"
-  // TODO: work on this
+  // CREATE ISLAND
+  setupIsland();
+
+  // CREATE MOUNTAINS
   setUpMountains();
   
   // CREATE POND WATER MESH
@@ -260,10 +281,10 @@ function init() {
 
   // MOUSE ROTATION CONTROLS
   const controls = new OrbitControls(camera, renderer.domElement);
-  controls.minDistance = 2;
+  controls.minDistance = 5;
   controls.maxDistance = 10;
   controls.minPolarAngle = 0;
-  controls.maxPolarAngle = Math.PI * 1 / 3;
+  controls.maxPolarAngle = Math.PI * 3 / 10;
   controls.target.set(0, 0, 0);
   controls.update();
 
@@ -307,8 +328,7 @@ function animate() {
   // TODO: post processing?
   // postProcessing.render();
 
-  // Moves water and controls bloom based on `b` keypress
-  // updateWater(bloomOn);
+  // Animates waterfall movement and splash
   updateWaterfall();
   updateSplash();
 
