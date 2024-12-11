@@ -1,155 +1,164 @@
 import * as THREE from "three";
 
-// WATERFALL PARTICLE SYSTEM
-
-const maxWaterfallParticleCount = 2500;
+const WATERFALL_PARTICLE_COUNT = 2500;
 const WATERFALL_X = 8.0
 const WATERFALL_X_OFFSET = -5.0
 const WATERFALL_Y = 8.0;
 const WATERFALL_Z = 2.0
 const WATERFALL_Z_OFFSET = - 10.0
 const WATERFALL_SPEED = 0.1
+const WATERFALL_COLOR = 0x5b73e6;
 
 const SPLASH_COUNT = 300
-const SPLASH_CENTER = { x: 0, z: -7.1 };
+const SPLASH_CENTER = { x: 0, z: -7.8 };
 const SPLASH_Y = 6.0
 const SPLASH_Y_OFFSET = -4.0
 const SPLASH_MAX_Y = 4.0
+const SPLASH_MAX_DIST = 5.0
 
-
-let rainMaterial, rainParticles;
+let waterdropMaterial, waterParticles;
 let splashMesh;
 
-function setUpRain(){
-  const rainGeometry = new THREE.PlaneGeometry(0.1, 3.0);
-  rainGeometry.rotateX(Math.PI / 2);
+/**
+ * Simulates a waterfall particle system with falling particles
+ * @returns Waterfall Mesh
+ */
+function setUpWaterfallMesh(){
+  // Create waterdrop as a flat plane
+  const waterdropGeometry = new THREE.PlaneGeometry(0.1, 3.0);
+  waterdropGeometry.rotateX(Math.PI / 2);
 
-  rainMaterial = new THREE.MeshBasicMaterial({
-    color: 0x5B73E6,
+  waterdropMaterial = new THREE.MeshBasicMaterial({
+    color: WATERFALL_COLOR,
     transparent: true,
     opacity: 0.6,
     side: THREE.DoubleSide,
-    depthWrite: false,
   });
 
-  rainParticles = new THREE.InstancedMesh(
-    rainGeometry,
-    rainMaterial,
-    maxWaterfallParticleCount
+  // Use InstancedMesh to create a lot of the same object
+  waterParticles = new THREE.InstancedMesh(
+    waterdropGeometry,
+    waterdropMaterial,
+    WATERFALL_PARTICLE_COUNT
   );
 
-  // Set random positions in a square area at y = 2
-  const dummy = new THREE.Object3D();
-
-  for (let i = 0; i < maxWaterfallParticleCount; i++) {
+  const waterdrop = new THREE.Object3D();
+  for (let i = 0; i < WATERFALL_PARTICLE_COUNT; i++) {
     // Randomize x and z positions within the square area
     const x = Math.random() * WATERFALL_X + WATERFALL_X_OFFSET;
     const z = Math.random() * WATERFALL_Z + WATERFALL_Z_OFFSET;
     const y = Math.random() * WATERFALL_Y; // Set the initial height
 
-    dummy.position.set(x, y, z);
-    dummy.rotation.set(Math.PI / 2, 0, 0); // Optional: You can set random rotations if desired
+    waterdrop.position.set(x, y, z);
+    waterdrop.rotation.set(Math.PI / 2, 0, 0); 
 
-    dummy.updateMatrix();
-    rainParticles.setMatrixAt(i, dummy.matrix);
+    waterdrop.updateMatrix();
+    waterParticles.setMatrixAt(i, waterdrop.matrix);
   }
 
-  return rainParticles;
+  return waterParticles;
 }
 
-function updateRain() {
-    const dummy = new THREE.Object3D();
-    const count = rainParticles.count;
+/**
+ * Handles animation of the waterfall.
+ */
+function updateWaterfall() {
+    const waterdrop = new THREE.Object3D();
 
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < WATERFALL_PARTICLE_COUNT; i++) {
       // Decompose the current matrix into position, rotation, and scale
-      rainParticles.getMatrixAt(i, dummy.matrix);
-      dummy.matrix.decompose(dummy.position, dummy.quaternion, dummy.scale);
+      waterParticles.getMatrixAt(i, waterdrop.matrix);
+      waterdrop.matrix.decompose(
+        waterdrop.position,
+        waterdrop.quaternion,
+        waterdrop.scale
+      );
 
       // Update the y position for the falling effect
-      dummy.position.y -= WATERFALL_SPEED * 3.0; // Control speed with `delta`
-      dummy.position.x += (Math.random() - 0.5) * WATERFALL_SPEED; // Small horizontal drift
-      dummy.position.z += (Math.random() - 0.5) * WATERFALL_SPEED; // Small depth drift
-
-      dummy.rotation.x += (Math.random() - 0.5) * WATERFALL_SPEED;
-    //   dummy.rotation.z += (Math.random() - 0.5) * WATERFALL_SPEED;
+      waterdrop.position.y -= WATERFALL_SPEED * 3.0; 
+      // Add some X/Z variance to make it look more random
+      waterdrop.position.x += (Math.random() - 0.5) * WATERFALL_SPEED;
+      waterdrop.position.z += (Math.random() - 0.5) * WATERFALL_SPEED;
+      waterdrop.rotation.x += (Math.random() - 0.5) * WATERFALL_SPEED;
 
       // Reset particle position if it falls below y = 0
-      if (dummy.position.y < 0) {
-        dummy.position.x = Math.random() * WATERFALL_X + WATERFALL_X_OFFSET;
-        dummy.position.z = Math.random() * WATERFALL_Z + WATERFALL_Z_OFFSET;
-        dummy.position.y = WATERFALL_Y; // Reset to top
+      if (waterdrop.position.y < 0) {
+        waterdrop.position.x = Math.random() * WATERFALL_X + WATERFALL_X_OFFSET;
+        waterdrop.position.z = Math.random() * WATERFALL_Z + WATERFALL_Z_OFFSET;
+        waterdrop.position.y = WATERFALL_Y;
       }
 
-      // Update the matrix and set it back
-      dummy.updateMatrix();
-      rainParticles.setMatrixAt(i, dummy.matrix);
+      waterdrop.updateMatrix();
+      waterParticles.setMatrixAt(i, waterdrop.matrix);
     }
 
-    // Mark the instance matrix as needing an update
-    rainParticles.instanceMatrix.needsUpdate = true;
+    // Mark it as needing update
+    waterParticles.instanceMatrix.needsUpdate = true;
 }
 
-
+/**
+ * Creates a particle system using a smoke texture to simulate the mist of a waterfall splashing
+ * @returns Splash mesh
+ */
 function setUpSplash() {
     const textureLoader = new THREE.TextureLoader();
-    const smokeTexture = textureLoader.load("textures/smoke1.png");
-    const particleGeometry = new THREE.BufferGeometry();
-    const pointMaterial = new THREE.PointsMaterial({
+    const smokeTexture = textureLoader.load("textures/smoke.png");
+    const smokeGeometry = new THREE.BufferGeometry();
+    const smokeMaterial = new THREE.PointsMaterial({
       map: smokeTexture,
       transparent: true,
       opacity: 0.5,
-      size: 5, // Size of each point in the particle system
-      sizeAttenuation: true, // Make the size of the points attenuate with distance,
+      size: 5, 
       blending: THREE.AdditiveBlending,
       depthWrite: false
     });
-  // Particle system parameters
+  // Smoke positions
   const positions = new Float32Array(SPLASH_COUNT * 3);
-  const velocities = new Float32Array(SPLASH_COUNT * 3);
-
-    const distanceThreshold = 5.0; // The radius around the waterfall splash where the smoke will appear
-  // Initialize positions and velocities
+  // Initialize positions
   for (let i = 0; i < SPLASH_COUNT; i++) {
-    let offsetX, offsetZ;
-    do {
-        offsetX = Math.random() * distanceThreshold * 2 - distanceThreshold; // Random offset in x
-        offsetZ = Math.random() * distanceThreshold * 2 - distanceThreshold; // Random offset in z
-      } while (
-        Math.sqrt(Math.pow(offsetX, 2) + Math.pow(offsetZ, 2)) > distanceThreshold
-    );
+    // Place smoke at a random location in a circle around where the waterfall hits the ocean
+    const angle = Math.random() * 2 * Math.PI;
+    const radius = Math.sqrt(Math.random()) * SPLASH_MAX_DIST; 
 
-    positions[i * 3] = SPLASH_CENTER.x + offsetX; // X: Spread points along the X-axis (spacing 0.2)
-    positions[i * 3 + 1] = Math.random() * SPLASH_Y + SPLASH_Y_OFFSET; // Y: All points at Y=0
-    positions[i * 3 + 2] = SPLASH_CENTER.z + offsetZ; // Z: All points at Z=0
+    const offsetX = radius * Math.cos(angle); 
+    const offsetZ = radius * Math.sin(angle); 
+
+    positions[i * 3] = SPLASH_CENTER.x + offsetX;
+    positions[i * 3 + 1] = Math.random() * SPLASH_Y + SPLASH_Y_OFFSET; 
+    positions[i * 3 + 2] = SPLASH_CENTER.z + offsetZ;
   }
 
-  particleGeometry.setAttribute(
+  smokeGeometry.setAttribute(
     "position",
     new THREE.BufferAttribute(positions, 3)
   );
-  particleGeometry.setAttribute(
-    "velocity",
-    new THREE.BufferAttribute(velocities, 3)
-  );
 
-  splashMesh = new THREE.Points(particleGeometry, pointMaterial);
+  splashMesh = new THREE.Points(smokeGeometry, smokeMaterial);
   return splashMesh;
 }
 
+/**
+ * Handles splash animation
+ */
 function updateSplash(){
   // Get the position attribute from the points geometry
   const positions = splashMesh.geometry.attributes.position.array;
-  const resetY = Math.random() * SPLASH_Y + SPLASH_Y_OFFSET;
-
-  // Update each particle's position
+  // Update each smoke's position
   for (let i = 0; i < positions.length; i += 3) {
-    // Move the particle up (increment Y)
-    positions[i + 1] += Math.random() * 0.008; // Increment Y position
+    // Move the smoke up
+    positions[i + 1] += Math.random() * 0.008; 
 
-    // If the particle is above SPLASH_MAX_Y, reset its Y position
+    // If the smoke is above SPLASH_MAX_Y, reset its Y position
     if (positions[i + 1] > SPLASH_MAX_Y) {
-      positions[i + 1] = resetY; // Reset Y position to the start
+      // Place smoke at a random location in a circle around where the waterfall hits the ocean
+      const angle = Math.random() * 2 * Math.PI; 
+      const radius = Math.sqrt(Math.random()) * SPLASH_MAX_DIST;
+
+      const offsetX = radius * Math.cos(angle);
+      const offsetZ = radius * Math.sin(angle);
+      positions[i] = SPLASH_CENTER.x + offsetX;
+      positions[i + 1] = Math.random() * SPLASH_Y + SPLASH_Y_OFFSET;
+      positions[i * 3 + 2] = SPLASH_CENTER.z + offsetZ;
     }
   }
 
@@ -157,4 +166,4 @@ function updateSplash(){
   splashMesh.geometry.attributes.position.needsUpdate = true;
 }
 
-export { setUpRain, updateRain, setUpSplash, updateSplash };
+export { setUpWaterfallMesh, updateWaterfall, setUpSplash, updateSplash };

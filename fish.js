@@ -1,8 +1,12 @@
 import * as THREE from 'three';
 
+
 const height = 2.2;
 let tuiCurve = genBezier(new THREE.Vector3(0, height, 2), true);
 let laCurve = genBezier(new THREE.Vector3(0, height, -2), false);
+// const redMoonColor = new THREE.Color(74/255, 4/255, 4/255);
+const redMoonColor = new THREE.Color(1, 0, 0);
+const whiteMoonColor = new THREE.Color(1, 1, 1);
 
 const speed = 0.002;
 
@@ -51,9 +55,12 @@ function updateFishPosition(fish, curve, fishTime) {
  * @param {*} light 
  * @param {*} t 
  * @param {*} isDragging 
+ * @param {*} godRays 
+ * @returns 
  */
-function animateFish(fish, fishInt, light, t, isDragging) {
+function animateFish(fish, fishInt, light, t, isDragging, godRays) {
   if (fish.position.y < height-0.05) {fish.position.y = height-0.05;} // make sure fish can't be dragged too far down
+  if (fish.position.y > height + 2) {fish.position.y = height+2;}
     // if new cycle
     if (t > 1 && fish.position.y == height && !isDragging) {
       t = 0;
@@ -79,9 +86,27 @@ function animateFish(fish, fishInt, light, t, isDragging) {
         if (fish.position.y < height) {
           fish.position.y = height; // make sure she lands at zero
         }
+        
+      light.color = new THREE.Color().lerpColors(whiteMoonColor, redMoonColor, (fish.position.y - 2.2)/2);
+      if (fish.position.y != 2.2) {
+        for (let i = 0; i < godRays.length; i++) {
+          const ray = godRays[i];
+          ray.material.uniforms.glowColor.value = new THREE.Color().lerpColors(whiteMoonColor, redMoonColor, (fish.position.y - 2.2)/2);
+        }
+      }
       }
     } else {
       t = 0;
+    }
+
+    if (isDragging) {
+      light.color = new THREE.Color().lerpColors(whiteMoonColor, redMoonColor, (fish.position.y - 2.2)/2);
+      if (fish.position.y != 2.2) {
+        for (let i = 0; i < godRays.length; i++) {
+          const ray = godRays[i];
+          ray.material.uniforms.glowColor.value = new THREE.Color().lerpColors(whiteMoonColor, redMoonColor, (fish.position.y - 2.2)/2);
+        }
+      }
     }
     return t;
 }
