@@ -4,13 +4,6 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-import { FilmPass } from 'three/addons/postprocessing/FilmPass.js';
-import { DotScreenShader } from 'three/examples/jsm/Addons.js';
-import { UnrealBloomPass } from 'three/examples/jsm/Addons.js';
-import { SobelOperatorShader } from 'three/examples/jsm/Addons.js';
-import { LuminosityShader } from 'three/examples/jsm/Addons.js';
-import { ColorifyShader } from 'three/examples/jsm/Addons.js';
-import { MMDToonShader } from 'three/examples/jsm/Addons.js';
 
 import { WatercolorShader } from './Watercolor.js';
 
