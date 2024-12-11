@@ -1,14 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-
-import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
-import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-
-import { WatercolorShader } from './Watercolor.js';
-
 import { DragControls } from 'three/addons/controls/DragControls.js';
-
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import {
   color,
@@ -27,6 +19,12 @@ import {
   positionWorld,
   time,
 } from "three/tsl";
+
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+
+import { WatercolorShader } from './Watercolor.js';
 
 import { updatePondWater, waterMesh } from './pond.js';
 import { createOceanMesh, updateOcean, INIT_BLOOM } from './ocean-water.js';
@@ -70,25 +68,11 @@ function setupKeyPressInteraction() {
   });
 }
 
-// Sets up and passes in watercolor shader
-const composer = new EffectComposer(renderer);
-const renderPass = new RenderPass(scene, camera);
-
-const textureLoader = new THREE.TextureLoader();
-const paperTexture = textureLoader.load('./textures/paper.png')
-
-const watercolorEffect = new ShaderPass(WatercolorShader);
-watercolorEffect.uniforms['tPaper'].value = paperTexture; // Use previously loaded paper texture
-watercolorEffect.uniforms['texel'].value = new THREE.Vector2(1.0 / window.innerWidth, 1.0 / window.innerHeight);
-
-composer.addPass(renderPass);
-composer.addPass(watercolorEffect);
-
 /**
  * Sets up ocean and initializes its position
  */
 function setupOcean(){
-  const water = createOceanMesh();
+  const water = createOceanMesh()
   water.position.set(OCEAN_X, OCEAN_Y, OCEAN_Z);
   water.rotation.x = -Math.PI / 2;
   water.rotation.z = -Math.PI / 2;
@@ -111,7 +95,6 @@ function setUpMountains(){
   mountain.position.set(0,-5,0);
   scene.add(mountain);
 }
-
 
 function setupIsland(){
   const loader = new GLTFLoader();
@@ -184,6 +167,20 @@ function setUpPondWater() {
   document.addEventListener('mousemove', (event) => onMouseMove(event, renderer, camera));
 }
 
+// SET UP WATERCOLOR SHADER
+const composer = new EffectComposer(renderer);
+const renderPass = new RenderPass(scene, camera);
+
+const textureLoader = new THREE.TextureLoader();
+const paperTexture = textureLoader.load('./textures/paper.png')
+
+const watercolorEffect = new ShaderPass(WatercolorShader);
+watercolorEffect.uniforms['tPaper'].value = paperTexture; // Use previously loaded paper texture
+watercolorEffect.uniforms['texel'].value = new THREE.Vector2(1.0 / window.innerWidth, 1.0 / window.innerHeight);
+
+composer.addPass(renderPass);
+composer.addPass(watercolorEffect);
+
 function init() {
   // // SET UP SCENE
   scene = new THREE.Scene();
@@ -207,17 +204,14 @@ function init() {
   // spotLight.castShadow = false;
   // scene.add(spotLight);
 
-  const pointLight = new THREE.PointLight(0xffffff, 30);
-  pointLight.position.set(0,5,1);
-
+  pointLight = new THREE.PointLight(0xffffff, 10);
+  pointLight.position.set(0,7,4);
   scene.add(pointLight);
 
-  // const dirLight = new THREE.DirectionalLight(0xffffff, 1);
-  // dirLight.position.set(10, 20, 10);
-  // dirLight.castShadow = true;
-  // dirLight.shadow.mapSize.width = 2048;
-  // dirLight.shadow.mapSize.height = 2048;
-  // scene.add(dirLight);
+  pointLight = new THREE.PointLight(0xffffff, 0.5);
+  pointLight.position.set(0,2.5,0);
+  pointLight.scale.set(0.3,0.3,0.3);
+  scene.add(pointLight);
 
   // CREATE OCEAN
   // TODO: Joe: Water shading.
@@ -236,6 +230,9 @@ function init() {
 
   // CREATE POND WATER MESH
   setUpPondWater();
+
+  // CREATE WATERCOLOR TEXTURE
+  // setUpWatercolorShader();
 
   // MOUSE ROTATION CONTROLS
   const controls = new OrbitControls(camera, renderer.domElement);
@@ -293,10 +290,6 @@ function animate() {
 
   updateSimulation(renderer);
 
-  // renderer.render(scene, camera);
-  composer.render();
-}
-
   if (tui) {
     tuiTime = animateFish(tui, 0, pointLight, tuiTime, isTuiDragging);
   }
@@ -309,5 +302,6 @@ function animate() {
     pointLight.intensity = Math.max(tui.position.y, la.position.y) * 10 + 10; // light increases as fish position gets higher
   }
 
-  renderer.render(scene, camera);
+  // renderer.render(scene, camera);
+  composer.render(); // use this to render watercolor shader
 }
