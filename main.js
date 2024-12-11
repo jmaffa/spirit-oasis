@@ -24,6 +24,8 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 
+import { ColorifyShader } from 'three/examples/jsm/Addons.js';
+
 import { WatercolorShader } from './Watercolor.js';
 
 import { updatePondWater, waterMesh } from './pond.js';
@@ -32,7 +34,8 @@ import { updateSimulation, onMouseMove } from './pond-simulation.js';
 import { genBezier, animateFish } from './fish.js';
 import { update } from 'three/examples/jsm/libs/tween.module.js';
 
-let pointLight;
+let pointLight1;
+let pointLight2;
 
 let renderer, scene, camera, cubemap, dragControls;
 let tui, la;
@@ -46,7 +49,7 @@ let isTuiDragging, isLaDragging = false;
 let bloomOn = false;
 // Constants to change "ocean" position
 const OCEAN_X = 0;
-const OCEAN_Y = -3.8; // TODO need ocean to stay under island
+const OCEAN_Y = -3; // TODO need ocean to stay under island
 const OCEAN_Z = 0;
 
 const ISLAND_X = 0;
@@ -109,11 +112,7 @@ function setupIsland(){
           const originalColor = child.material.color.clone();
           child.material = new THREE.MeshToonMaterial({
             color: originalColor,
-            emissive: child.material.emissive.clone(),
             map: child.material.map,
-            normalMap: child.material.normalMap,
-            transparent: child.material.transparent,
-            opacity: child.material.opacity,
           });
         }
       });
@@ -178,8 +177,13 @@ const watercolorEffect = new ShaderPass(WatercolorShader);
 watercolorEffect.uniforms['tPaper'].value = paperTexture; // Use previously loaded paper texture
 watercolorEffect.uniforms['texel'].value = new THREE.Vector2(1.0 / window.innerWidth, 1.0 / window.innerHeight);
 
+// TESTING: Colorify to Red 
+const colorify = new ShaderPass(ColorifyShader);
+colorify.uniforms["color"].value.setRGB(1,0,0);
+
 composer.addPass(renderPass);
 composer.addPass(watercolorEffect);
+// composer.addPass(colorify);
 
 function init() {
   // // SET UP SCENE
@@ -204,14 +208,15 @@ function init() {
   // spotLight.castShadow = false;
   // scene.add(spotLight);
 
-  pointLight = new THREE.PointLight(0xffffff, 10);
-  pointLight.position.set(0,7,4);
-  scene.add(pointLight);
+  pointLight1 = new THREE.PointLight(0xffffff, 30);
+  pointLight1.position.set(0,5,3);
+  pointLight1.scale.set(2,2,2);
+  scene.add(pointLight1);
 
-  pointLight = new THREE.PointLight(0xffffff, 0.5);
-  pointLight.position.set(0,2.5,0);
-  pointLight.scale.set(0.3,0.3,0.3);
-  scene.add(pointLight);
+  pointLight2 = new THREE.PointLight(0xffffff, 0.5);
+  pointLight2.position.set(0,3,0);
+  pointLight2.scale.set(1,1,1);
+  scene.add(pointLight2);
 
   // CREATE OCEAN
   // TODO: Joe: Water shading.
@@ -230,9 +235,6 @@ function init() {
 
   // CREATE POND WATER MESH
   setUpPondWater();
-
-  // CREATE WATERCOLOR TEXTURE
-  // setUpWatercolorShader();
 
   // MOUSE ROTATION CONTROLS
   const controls = new OrbitControls(camera, renderer.domElement);
@@ -291,15 +293,15 @@ function animate() {
   updateSimulation(renderer);
 
   if (tui) {
-    tuiTime = animateFish(tui, 0, pointLight, tuiTime, isTuiDragging);
+    tuiTime = animateFish(tui, 0, pointLight2, tuiTime, isTuiDragging);
   }
 
   if (la) {
-    laTime = animateFish(la, 1, pointLight, laTime, isLaDragging);
+    laTime = animateFish(la, 1, pointLight2, laTime, isLaDragging);
   }
 
   if (tui && la) {
-    pointLight.intensity = Math.max(tui.position.y, la.position.y) * 10 + 10; // light increases as fish position gets higher
+    pointLight2.intensity = Math.max(tui.position.y, la.position.y) * 10 + 10; // light increases as fish position gets higher
   }
 
   // renderer.render(scene, camera);

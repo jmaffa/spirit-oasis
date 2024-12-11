@@ -76,7 +76,7 @@ const vertShader = `
         // Wave effect
         float waveHeight;
         waveHeight = sin(position.x * 10.0 + time) * waveMultiplier; 
-        waveHeight += cos(position.y * 15.0 + time * 1.5) * (waveMultiplier * 0.5);
+        waveHeight += cos(position.y * 10.0 + time) * (waveMultiplier * 0.5);
 
         // Worley noise modulation
         float worleyValue = fworley(uv * resolution / 1500.0); 
