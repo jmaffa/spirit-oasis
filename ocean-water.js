@@ -1,25 +1,26 @@
 
 import * as THREE from 'three';
 
-const INIT_BLOOM = 0.05
+const OCEAN_DEPTH = 5;
+
+const INIT_BLOOM = 0.1
 const OCEAN_BLOOM_THRESHHOLD_LOW = INIT_BLOOM;
-const OCEAN_BLOOM_THRESHHOLD_HIGH = 3.0;
+const OCEAN_BLOOM_THRESHHOLD_HIGH = 5.0;
 const INIT_WAVE = 0.05;
 const WAVE_THRESHHOLD_LOW = INIT_WAVE;
 const WAVE_THRESHHOLD_HIGH = 0.3;
 
-
-const STAR_RADIUS = 9;
-const STAR_PETAL_DEPTH = 6;
+const STAR_RADIUS = 12;
+const STAR_PETAL_DEPTH = 8;
 const STAR_PRONGS = 5;
 
+// Shader adapted from https://www.shadertoy.com/view/llS3RK
 const vertShader = `
     varying vec2 vUv;
     varying vec3 vWorldPosition;
 
     uniform float time;
     uniform vec2 resolution;
-    uniform bool isBloom;
     uniform float waveMultiplier;
 
     // Squares a vector
@@ -27,32 +28,40 @@ const vertShader = `
         return dot(v, v);
     }
     
-    // Pseudorandom noise function
+    /*
+     * Pseudorandom noise function to control the wave pattern
+    */
     float noise(vec2 v){
         return fract(sin(fract(sin(v.x) * (4.13311)) + v.y) * 3.0011);
     }
             
         
+    /*
+     * Implementation of Worley noise. Sorts randomly selected grid points around a location by distance then calculates
+     * final noise based on that distance.
+    */
     float worley(vec2 v){
-        // make distance super high
+        // Make distance super high
         float dist = 1.0e30;
 
         // Grid points
         for (int d_x = -1; d_x <= 1; d_x++){
             for (int d_y = -1; d_y <= 1; d_y++){
-                // floor vec2 and add to offset
+                // Floor vec2 and add to offset
                 vec2 pt = floor(v) + vec2(d_x, d_y);
                 
-                // calculate minimum distance for point and add noise
-                dist = min(dist, lengthSquared(v - pt - noise(pt)));
+                // Calculate minimum distance for point and add noise
+                dist = min(dist, lengthSquared(v - pt + noise(pt)));
             }
         }
 
-        // amplitude, sharpness, frequency, off-center
+        // Amplitude, Sharpness, Frequency, Off-center
         return 3.0 * exp(-4.0 * abs(2.5 * dist - 1.0));
     }
     
-    // Stacks layers of Worley noise
+    /*
+     * Stacks layers of Worley noise amplified by time
+    */ 
     float fworley(vec2 v){
         return sqrt(sqrt(sqrt(
             worley(v*5.0 + 0.05*time) *
@@ -61,9 +70,9 @@ const vertShader = `
         ))))));
     }
 
-
     void main() {
         vUv = uv;
+        // Remap the texture planes because of extrude geometry
         if (position.x != 0.0) {
             vUv = vec2(position.x * 0.5 + 0.5, position.y * 0.5 + 0.5);  // Simple XY plane mapping
         } else {
@@ -76,37 +85,42 @@ const vertShader = `
         // Wave effect
         float waveHeight;
         waveHeight = sin(position.x * 10.0 + time) * waveMultiplier; 
-        waveHeight += cos(position.y * 15.0 + time * 1.5) * (waveMultiplier * 0.5);
+        waveHeight += cos(position.y * 10.0 + time) * (waveMultiplier * 0.5);
 
         // Worley noise modulation
         float worleyValue = fworley(uv * resolution / 1500.0); 
         displacedPosition.z += waveHeight * worleyValue; // Combine wave and Worley
 
+        // Pass final world position
         vWorldPosition = (modelMatrix * vec4(displacedPosition, 1.0)).xyz;
         gl_Position = projectionMatrix * modelViewMatrix * vec4(displacedPosition, 1.0);
     }
 `;
 
-// adapted from https://www.shadertoy.com/view/llS3RK
 const fragShader = `
     varying vec2 vUv;
     varying vec3 vWorldPosition;
 
     uniform float time;
     uniform vec2 resolution;
-    uniform float bloomTime;
-    uniform bool isBloom;
     uniform float bloom;
 
+    // Squares a vector
     float lengthSquared(vec2 v){
         return dot(v, v);
     }
-        
+    
+    /*
+     * Pseudorandom noise function to control the wave pattern
+    */
     float noise(vec2 v){
         return fract(sin(fract(sin(v.x) * (43.13311)) + v.y) * 31.0011);
     }
-        
-    
+
+    /*
+     * Implementation of Worley noise. Sorts randomly selected grid points around a location by distance then calculates
+     * final noise based on that distance.
+    */
     float worley(vec2 v){
         // make distance super high
         float dist = 1.0e30;
@@ -121,7 +135,7 @@ const fragShader = `
                 dist = min(dist, lengthSquared(v - pt - noise(pt)));
             }
         }
-        // amplitude, 
+        // Amplitude, Sharpness, Frequency, Off-center
         return bloom * exp(-6.0 * abs(2.5 * dist - 1.5));
     }
 
@@ -141,22 +155,12 @@ const fragShader = `
 
     void main() {
         vec2 uv = vUv;
-        // Radial distance from center (normalized)
-        // vec2 center = vec2(0.5, 0.5); // Screen center in UV coordinates
-        // float radialDist = length(uv - center);
-
-        // Expanding radius over time
-        // float radius = time * 0.1; // Controls speed of expansion
-        // float falloff = smoothstep(radius, radius - 0.1, radialDist); // Gradual falloff near radius edge
 
         // Compute the base Worley noise pattern
         float basePattern = fworley(uv * resolution / 1500.0);
 
-        // Combine the base pattern and bloom effect
-        float finalIntensity = basePattern;
-
         // Toon Shading 
-        vec3 toonColor = applyToonShading(vec3(0.1, 0.8 * finalIntensity, pow(finalIntensity, 0.5 - finalIntensity)), finalIntensity);
+        vec3 toonColor = applyToonShading(vec3(0.1, 0.8 * basePattern, pow(basePattern, 0.5 - basePattern)), basePattern);
 
         // Final color output
         gl_FragColor = vec4(toonColor, 1.0);
@@ -166,81 +170,94 @@ const fragShader = `
 const waterMaterial = new THREE.ShaderMaterial({
     uniforms: {
         time: { value: 0.0 },
-        bloomTime: { value: 0.0},
         resolution: {
             value: new THREE.Vector2(window.innerWidth, window.innerHeight),
         },
         bloom: { value: INIT_BLOOM},
         waveMultiplier: {value: INIT_BLOOM},
-        isBloom : {value: false},        
     },
     vertexShader: vertShader,
     fragmentShader: fragShader,
 });  
 
-function createStar(prongs, radius, petalDepth) {
+/**
+ * Creates Star shaped geometry for the "ocean water" surrounding the island.
+ * This "Star" has rounded corners to more closely resemble flower petals (per the scene reference)
+ */
+function createStar() {
+  // Set up the shape and the angle step per iteration
   const shape = new THREE.Shape();
-  const angleStep = (Math.PI * 2) / prongs; // Angle between petals
+  const angleStep = (Math.PI * 2) / STAR_PRONGS;
 
-  for (let i = 0; i < prongs; i++) {
+  for (let i = 0; i < STAR_PRONGS; i++) {
     const startAngle = i * angleStep;
     const midAngle = startAngle + angleStep / 2;
     const endAngle = startAngle + angleStep;
 
-    const startX = Math.cos(startAngle) * radius;
-    const startY = Math.sin(startAngle) * radius;
+    // Find starting point, midpoint (star point), end point (next inner point)
+    const startX = Math.cos(startAngle) * STAR_RADIUS;
+    const startY = Math.sin(startAngle) * STAR_RADIUS;
 
-    const midX = Math.cos(midAngle) * (radius + petalDepth);
-    const midY = Math.sin(midAngle) * (radius + petalDepth);
+    const midX = Math.cos(midAngle) * (STAR_RADIUS + STAR_PETAL_DEPTH);
+    const midY = Math.sin(midAngle) * (STAR_RADIUS + STAR_PETAL_DEPTH);
 
-    const endX = Math.cos(endAngle) * radius;
-    const endY = Math.sin(endAngle) * radius;
+    const endX = Math.cos(endAngle) * STAR_RADIUS;
+    const endY = Math.sin(endAngle) * STAR_RADIUS;
 
     if (i === 0) {
-      shape.moveTo(startX, startY); // Start the shape at the first point
+      // Start the shape at the first point
+      shape.moveTo(startX, startY);
     }
 
-    // Add a quadratic curve for the petal
+    // From the starting point, use the "point" of the star to curve to the next inner intersection point
     shape.quadraticCurveTo(midX, midY, endX, endY);
   }
 
-  shape.closePath(); // Close the shape to complete the flower
+  shape.closePath();
 
+  // Extrude star shape to a three dimensional shape
   const extrudeSettings = {
-    depth: 5, // Thickness of the cylinder
-    bevelEnabled: false, // Disable beveling
+    depth: OCEAN_DEPTH,
+    bevelEnabled: false,
   };
+
   return new THREE.ExtrudeGeometry(shape, extrudeSettings);
 }
 
-
+/**
+ * Creates Mesh for the ocean using the star shape and the waterMaterial.
+ * @returns oceanMesh
+ */
 function createOceanMesh(){
     const oceanMesh = new THREE.Mesh(
-      createStar(STAR_PRONGS, STAR_RADIUS, STAR_PETAL_DEPTH),
+      createStar(),
       waterMaterial
     );
     return oceanMesh
 }
 
+/**
+ * Water animation method: handles water movement, wave simulation, and bloom effect
+ */
 function updateOcean(bloomOn) {
+  // Increments time to simulate water movement
   waterMaterial.uniforms.time.value += 0.05;
+
+  // Controls bloom instensity
   if (
     bloomOn &&
     waterMaterial.uniforms.bloom.value <= OCEAN_BLOOM_THRESHHOLD_HIGH
   ) {
-    waterMaterial.uniforms.isBloom.value = bloomOn;
-    waterMaterial.uniforms.bloom.value += 0.01;
-    // waterMaterial.uniforms.bloomTime.value += 0.01;
+    waterMaterial.uniforms.bloom.value += 0.05;
   }
   if (
     !bloomOn &&
     waterMaterial.uniforms.bloom.value >= OCEAN_BLOOM_THRESHHOLD_LOW
   ) {
-    waterMaterial.uniforms.isBloom.value = bloomOn;
-    waterMaterial.uniforms.bloom.value -= 0.01;
-    // waterMaterial.uniforms.bloomTime.value -= 0.01;
+    waterMaterial.uniforms.bloom.value -= 0.05;
   }
 
+  // Controls wave movement
   if (
     bloomOn &&
     waterMaterial.uniforms.waveMultiplier.value <= WAVE_THRESHHOLD_HIGH
@@ -256,4 +273,4 @@ function updateOcean(bloomOn) {
   }
 }
 
-export { createOceanMesh, updateOcean, INIT_BLOOM };
+export { createOceanMesh, updateOcean };

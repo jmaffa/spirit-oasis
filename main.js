@@ -2,39 +2,27 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { DragControls } from 'three/addons/controls/DragControls.js';
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import {
-  color,
-  vec2,
-  pass,
-  linearDepth,
-  normalWorld,
-  triplanarTexture,
-  texture,
-  objectPosition,
-  screenUV,
-  viewportLinearDepth,
-  viewportDepthTexture,
-  viewportSharedTexture,
-  mx_worley_noise_float,
-  positionWorld,
-  time,
-} from "three/tsl";
 
+import {setUpWaterfallMesh, setUpSplash, updateWaterfall, updateSplash } from './waterfall.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 
+import { ColorifyShader } from 'three/examples/jsm/Addons.js';
 
 import { WatercolorShader } from './Watercolor.js';
 
 import { updatePondWater, waterMesh } from './pond.js';
-import { createOceanMesh, updateOcean, INIT_BLOOM } from './ocean-water.js';
+import { createOceanMesh, updateOcean } from './ocean-water.js';
 import { updateSimulation, onMouseMove } from './pond-simulation.js';
 import { animateFish } from './fish.js'; 
 import { update } from 'three/examples/jsm/libs/tween.module.js';
+import { createMountainMesh, createSideLand } from './mountains.js';
 import { getRayMaterial, generateCones } from './lights.js';
 
 let pointLight, pointLight2;
+let pointLight1;
+let pointLight2;
 
 let renderer, scene, camera, cubemap, dragControls;
 let tui, la;
@@ -53,12 +41,14 @@ let godRays = [];
 let bloomOn = false;
 // Constants to change "ocean" position
 const OCEAN_X = 0;
-const OCEAN_Y = -3.8; // TODO need ocean to stay under island
+const OCEAN_Y = -3.5; // TODO need ocean to stay under island
 const OCEAN_Z = 0;
 
 const ISLAND_X = 0;
 const ISLAND_Y = 1.5;
 const ISLAND_Z = 0;
+
+const clock = new THREE.Clock();
 
 init();
 
@@ -70,7 +60,6 @@ function setupKeyPressInteraction() {
   document.addEventListener("keydown", function (event) {
     if (event.key === "b") {
       bloomOn = !bloomOn; // Toggle the flag
-      console.log("Flag flipped:", bloomOn);
     }
   });
 }
@@ -86,21 +75,69 @@ function setupOcean(){
   scene.add(water);
 }
 
+/**
+ * Sets up simple mountains / external land in the scene
+ */
 function setUpMountains(){
-  const mountainGeometry = new THREE.CylinderGeometry(10, 10, 50, 32);
-  const mountainMaterial = new THREE.MeshBasicMaterial({
-    color: 0x0000ff, // Inside color
-    // transparent: true, // Make the material transparent/
-    opacity: 0.8, // Control transparency level (0 = fully transparent, 1 = fully opaque)
-    side: THREE.BackSide, // Render the inside of the cylinder
-    wireframe: false, // Optional: Turn off wireframe if not needed
-  });
-  const mountain = new THREE.Mesh(
-    mountainGeometry,
-    mountainMaterial
-  )
-  mountain.position.set(0,-5,0);
-  scene.add(mountain);
+  const mountainMeshBack = createMountainMesh(30, 10);
+  mountainMeshBack.position.set(0,3.0,-15.0);
+  mountainMeshBack.rotation.x = -Math.PI / 2; 
+  scene.add(mountainMeshBack)
+
+  const mountainMeshRightBack = createMountainMesh(30, 10);
+  mountainMeshRightBack.position.set(8.0, 3.0, -12.0);
+  mountainMeshRightBack.rotation.x = -Math.PI / 2;
+  mountainMeshRightBack.rotation.z = -Math.PI / 4;
+  scene.add(mountainMeshRightBack)
+
+  const mountainMeshLeftBack = createMountainMesh(30, 10);
+  mountainMeshLeftBack.position.set(-8.0, 3.0, -12.0);
+  mountainMeshLeftBack.rotation.x = -Math.PI / 2;
+  mountainMeshLeftBack.rotation.z = Math.PI / 4;
+  scene.add(mountainMeshLeftBack);
+
+  const mountainMeshLeftFront = createMountainMesh(20, 5);
+  mountainMeshLeftFront.position.set(-9.0, 3.0, 8.0);
+  mountainMeshLeftFront.rotation.x = -Math.PI / 2;
+  mountainMeshLeftFront.rotation.z = - Math.PI / 3;
+  scene.add(mountainMeshLeftFront);
+
+  const mountainMeshRightFront = createMountainMesh(20, 5);
+  mountainMeshRightFront.position.set(9.0, 3.0, 8.0);
+  mountainMeshRightFront.rotation.x = -Math.PI / 2;
+  mountainMeshRightFront.rotation.z = Math.PI / 3;
+  scene.add(mountainMeshRightFront);
+
+  const mountainMeshOutsideFrontRight = createMountainMesh(30, 2);
+  mountainMeshOutsideFrontRight.position.set(3.0, 3.0, 28.0);
+  mountainMeshOutsideFrontRight.rotation.x = -Math.PI / 2;
+  mountainMeshOutsideFrontRight.rotation.z = -Math.PI / 2;
+  scene.add(mountainMeshOutsideFrontRight);
+
+  const mountainMeshOutsideFrontLeft = createMountainMesh(30, 2);
+  mountainMeshOutsideFrontLeft.position.set(-3.0, 3.0, 28.0);
+  mountainMeshOutsideFrontLeft.rotation.x = -Math.PI / 2;
+  mountainMeshOutsideFrontLeft.rotation.z = -Math.PI / 2;
+  scene.add(mountainMeshOutsideFrontLeft);
+
+  // Then the land connected to mountains and bridge
+  const rightFrontLand = createSideLand();
+  rightFrontLand.position.set(9.0, -6.0, 4.0);
+  rightFrontLand.rotation.x = -Math.PI / 2;
+  rightFrontLand.rotation.z = -Math.PI / 6;
+  scene.add(rightFrontLand)
+
+  const leftFrontLand = createSideLand();
+  leftFrontLand.position.set(-9.0, -6.0, 4.0);
+  leftFrontLand.rotation.x = -Math.PI / 2;
+  leftFrontLand.rotation.z = Math.PI / 6;
+  scene.add(leftFrontLand);
+
+  const frontLand = createSideLand();
+  frontLand.position.set(0, -6.0, 26.0);
+  frontLand.rotation.x = -Math.PI / 2;
+  scene.add(frontLand);
+
 }
 
 function setupIsland(){
@@ -116,11 +153,7 @@ function setupIsland(){
           const originalColor = child.material.color.clone();
           child.material = new THREE.MeshToonMaterial({
             color: originalColor,
-            emissive: child.material.emissive.clone(),
             map: child.material.map,
-            normalMap: child.material.normalMap,
-            transparent: child.material.transparent,
-            opacity: child.material.opacity,
           });
         }
       });
@@ -185,13 +218,24 @@ const watercolorEffect = new ShaderPass(WatercolorShader);
 watercolorEffect.uniforms['tPaper'].value = paperTexture; // Use previously loaded paper texture
 watercolorEffect.uniforms['texel'].value = new THREE.Vector2(1.0 / window.innerWidth, 1.0 / window.innerHeight);
 
+// TESTING: Colorify to Red 
+const colorify = new ShaderPass(ColorifyShader);
+colorify.uniforms["color"].value.setRGB(1,0,0);
+
 composer.addPass(renderPass);
 composer.addPass(watercolorEffect);
+
+function setUpWaterfall(){
+
+  scene.add(setUpWaterfallMesh());
+  scene.add(setUpSplash());
+}
 
 function init() {
   // // SET UP SCENE
   scene = new THREE.Scene();
   scene.background = new THREE.Color( 0x18396d );
+  // scene.background = new THREE.Color(0xffffff);
 
   // // SET UP CAMERA
   camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
@@ -211,52 +255,44 @@ function init() {
   // spotLight.castShadow = false;
   // scene.add(spotLight);
 
-  pointLight = new THREE.PointLight(0xffffff, 10);
-  pointLight.position.set(0,7,4);
-  scene.add(pointLight);
+  pointLight1 = new THREE.PointLight(0xffffff, 30);
+  pointLight1.position.set(0,5,3);
+  pointLight1.scale.set(2,2,2);
+  scene.add(pointLight1);
 
   pointLight2 = new THREE.PointLight(0xffffff, 8);
-  pointLight2.position.set(0,2.5,0);
-  pointLight2.scale.set(0.3,0.3,0.3);
+  pointLight2.position.set(0,3,0);
+  pointLight2.scale.set(1,1,1);
   scene.add(pointLight2);
 
-  // const rayMat = getRayMaterial(camera);
-  // const geometry = new THREE.ConeGeometry(10, 20, 32, 1, true); // Open-ended cone
-  // const volumetricLight = new THREE.Mesh(geometry, rayMat);
-  // scene.add(volumetricLight);
-
-  // const geometry2 = new THREE.ConeGeometry(2, 10, 32, 1, true); // Open-ended cone
-  // const volumetricLight2 = new THREE.Mesh(geometry2, rayMat);
-  // scene.add(volumetricLight2);
-
-  godRays = generateCones(scene, camera);
-  // CREATE OCEAN
-  // TODO: Joe: Water shading.
-  setupOcean();
-  
-  // CREATE ISLAND
-  // TODO: need to replace file after baking wood texture
-  setupIsland();
+  const light = new THREE.AmbientLight(0x404040); // Soft white light
+  scene.add(light);
 
   // CREATE FISH
   setUpFish();
+  
+  godRays = generateCones(scene, camera);
+  // CREATE OCEAN
+  setupOcean();
+  
+  // CREATE WATERFALL
+  setUpWaterfall();
 
-  // CREATE "MOUNTAIN LAND"
-  // TODO: work on this
+  // CREATE ISLAND
+  setupIsland();
+
+  // CREATE MOUNTAINS
   setUpMountains();
-
+  
   // CREATE POND WATER MESH
   setUpPondWater();
 
-  // CREATE WATERCOLOR TEXTURE
-  // setUpWatercolorShader();
-
   // MOUSE ROTATION CONTROLS
   const controls = new OrbitControls(camera, renderer.domElement);
-  controls.minDistance = 2;
+  controls.minDistance = 5;
   controls.maxDistance = 10;
   controls.minPolarAngle = 0;
-  controls.maxPolarAngle = Math.PI * 1 / 3;
+  controls.maxPolarAngle = Math.PI * 3 / 10;
   controls.target.set(0, 0, 0);
   controls.update();
 
@@ -297,6 +333,12 @@ function onWindowResize() {
 }
 
 function animate() {
+  // TODO: post processing?
+  // postProcessing.render();
+
+  // Animates waterfall movement and splash
+  updateWaterfall();
+  updateSplash();
 
   // Moves water and controls bloom based on `b` keypress
   updateOcean(bloomOn);
@@ -308,19 +350,15 @@ function animate() {
   updateSimulation(renderer);
 
   if (tui) {
-    tuiTime = animateFish(tui, 0, pointLight, tuiTime, isTuiDragging, godRays);
+    tuiTime = animateFish(tui, 0, pointLight2, tuiTime, isTuiDragging, godRays);
   }
 
   if (la) {
-    laTime = animateFish(la, 1, pointLight, laTime, isLaDragging, godRays);
+    laTime = animateFish(la, 1, pointLight2, laTime, isLaDragging, godRays);
   }
 
   if (tui && la) {
-    pointLight.intensity = Math.max(tui.position.y, la.position.y) * 10 + 10; // light increases as fish position gets higher
-
-    if (isTuiDragging) {
-      console.log("tui is dragging");
-    }
+    pointLight2.intensity = Math.max(tui.position.y, la.position.y) * 10 + 10; // light increases as fish position gets higher
   }
 
   // renderer.render(scene, camera);
