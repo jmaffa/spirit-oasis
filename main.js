@@ -2,25 +2,8 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { DragControls } from 'three/addons/controls/DragControls.js';
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import {
-  color,
-  vec2,
-  pass,
-  linearDepth,
-  normalWorld,
-  triplanarTexture,
-  texture,
-  objectPosition,
-  screenUV,
-  viewportLinearDepth,
-  viewportDepthTexture,
-  viewportSharedTexture,
-  mx_worley_noise_float,
-  positionWorld,
-  time,
-} from "three/tsl";
 
-import {setUpRain, setUpSplash, updateRain, updateSplash } from './waterfall.js';
+import {setUpWaterfall, setUpSplash, updateWaterfall, updateSplash } from './waterfall.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
@@ -30,7 +13,7 @@ import { ColorifyShader } from 'three/examples/jsm/Addons.js';
 import { WatercolorShader } from './Watercolor.js';
 
 import { updatePondWater, waterMesh } from './pond.js';
-import { createOceanMesh, updateOcean, INIT_BLOOM } from './ocean-water.js';
+import { createOceanMesh, updateOcean } from './ocean-water.js';
 import { updateSimulation, onMouseMove } from './pond-simulation.js';
 import { genBezier, animateFish } from './fish.js';
 import { update } from 'three/examples/jsm/libs/tween.module.js';
@@ -69,7 +52,6 @@ function setupKeyPressInteraction() {
   document.addEventListener("keydown", function (event) {
     if (event.key === "b") {
       bloomOn = !bloomOn; // Toggle the flag
-      console.log("Flag flipped:", bloomOn);
     }
   });
 }
@@ -195,8 +177,8 @@ composer.addPass(watercolorEffect);
 
 function createRain(){
   // console.log('test')
-  // const mesh = setUpRain();
-  scene.add(setUpRain());
+  // const mesh = setUpWaterfall();
+  scene.add(setUpWaterfall());
   const smokeParticles = setUpSplash();
   // for(let i = 0; i < smokeParticles.length; i++) {
   //   scene.add(smokeParticles[i]);
@@ -327,7 +309,7 @@ function animate() {
 
   // Moves water and controls bloom based on `b` keypress
   // updateWater(bloomOn);
-  updateRain();
+  updateWaterfall();
   updateSplash();
 
   // Moves water and controls bloom based on `b` keypress
