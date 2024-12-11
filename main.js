@@ -9,7 +9,7 @@ let t = 0;
 
 let fishPull;
 let isFishPickedUp = false;
-let isFishReturning;
+let isFishReturning = false;
 
 let dragControls;
 
@@ -87,10 +87,17 @@ function onWindowResize() {
 function animate() {
   if (!isFishPickedUp) {
     if (isFishReturning) {
-      const fishTargetPos = new THREE.Vector3(fishPull.position.x, 0, fishPull.position.z);
-      FishReturning(fishPull, fishTargetPos);
-    } else {FishAnimation(fishPull, t, 2, isFishReturning);
-    t += 0.01;
+      const position = fishPull.position;
+
+  console.log(`Fish position: x=${position.x}, y=${position.y}, z=${position.z}`);
+
+      let fishTargetPos = new THREE.Vector3(fishPull.position.x, 0, fishPull.position.z);
+      isFishReturning = FishReturning(fishPull, fishPull.position, fishTargetPos);
+      console.log("isFishReturning: " + isFishReturning);
+    } else {
+      FishAnimation(fishPull, t, 2, isFishReturning);
+      t += 0.01;
+      // console.log("fish is going");
     }
   }
 

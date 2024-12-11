@@ -47,9 +47,17 @@ function FishAnimation(fish, t, fishRotationRadius) {
   fish.rotateX(Math.PI / 2);
 }
 
-function FishReturning(fish, target) {
+function FishReturning(fish, fishPosition, target) {
+  // fish.position = target;
   const speed = 0.01;
-  fish.translateOnAxis(target - fish.position, speed);
+  fish.translateOnAxis(target - fishPosition, speed);
+  let distanceToTarget = fishPosition.distanceTo(target);
+  // console.log("distnace to target " + distanceToTarget);
+  // const position = fish.position;
+
+  // console.log(`Fish position: x=${position.x}, y=${position.y}, z=${position.z}`);
+  console.log("target pos " + target.x);
+  return distanceToTarget > 0.01;
 }
 
 export { FishGeometry, FishAnimation, FishReturning }
