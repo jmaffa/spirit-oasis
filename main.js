@@ -22,6 +22,8 @@ import {
 import { waterMesh } from './pond.js';
 import { createOceanMesh, updateWater, INIT_BLOOM } from './ocean-water.js';
 import Cubemap from './cubemap.js';
+import { updateSimulation, onMouseMove } from './pond-simulation.js';
+
 
 let renderer, scene, camera, cubemap;
 
@@ -197,16 +199,6 @@ function init() {
   // cube.position.set(0, 1, 0); // Adjust to lay flat
   // cube.rotation.z = Math.PI / 2; // Rotate to lay on the long side
   // scene.add(cube);
-
-  // LOAD CUBEMAP
-  cubemap = new Cubemap({
-    xpos: 'textures/xpos.png', // TODO claire - files need to include sky reflection
-    xneg: 'textures/xneg.png',
-    ypos: 'textures/ypos.png',
-    yneg: 'textures/yneg.png',
-    zpos: 'textures/zpos.png',
-    zneg: 'textures/zneg.png',
-  });
   
   // CREATE POND CYLINDER WITH TRANSPARENCY
   const pondGeometry = new THREE.CylinderGeometry(2.5, 2.5, 0.5, 64); // radiusTop, radiusBottom, height, radialSegments
@@ -259,6 +251,9 @@ function onWindowResize() {
   renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
+document.addEventListener('mousemove', (event) => onMouseMove(event, renderer, camera));
+// window.addEventListener('mousemove', (event) => onMouseMove(event, renderer, camera));
+
 function animate() {
 
   // TODO: post processing?
@@ -272,6 +267,7 @@ function animate() {
 
   // TODO claire update cubemap texture potentially
 
+  updateSimulation(renderer);
   renderer.render(scene, camera);
 }
 
