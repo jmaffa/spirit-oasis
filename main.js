@@ -1,5 +1,19 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { FilmPass } from 'three/addons/postprocessing/FilmPass.js';
+import { DotScreenShader } from 'three/examples/jsm/Addons.js';
+import { UnrealBloomPass } from 'three/examples/jsm/Addons.js';
+import { SobelOperatorShader } from 'three/examples/jsm/Addons.js';
+import { LuminosityShader } from 'three/examples/jsm/Addons.js';
+import { ColorifyShader } from 'three/examples/jsm/Addons.js';
+import { MMDToonShader } from 'three/examples/jsm/Addons.js';
+
+import { WatercolorShader } from './Watercolor.js';
+
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import {
   color,
@@ -53,11 +67,29 @@ function setupKeyPressInteraction() {
   });
 }
 
+// STUFF FOR SHADERS HERE (START)
+
+const composer = new EffectComposer(renderer);
+const renderPass = new RenderPass(scene, camera);
+
+const textureLoader = new THREE.TextureLoader();
+const paperTexture = textureLoader.load('./textures/paper.png')
+
+// Need to add Watercolor Pass here 
+const watercolorEffect = new ShaderPass(WatercolorShader);
+watercolorEffect.uniforms['tPaper'].value = paperTexture; // Use previously loaded paper texture
+watercolorEffect.uniforms['texel'].value = new THREE.Vector2(1.0 / window.innerWidth, 1.0 / window.innerHeight);
+
+composer.addPass(renderPass);
+composer.addPass(watercolorEffect);
+
+// STUFF FOR SHADERS HERE (END)
+
 /**
  * Sets up ocean and initializes its position
  */
 function setupOcean(){
-  const water = createOceanMesh()
+  const water = createOceanMesh();
   water.position.set(OCEAN_X, OCEAN_Y, OCEAN_Z);
   water.rotation.x = -Math.PI / 2;
   water.rotation.z = -Math.PI / 2;
@@ -81,12 +113,27 @@ function setUpMountains(){
   scene.add(mountain);
 }
 
+
 function setupIsland(){
   const loader = new GLTFLoader();
   loader.load(
     "assets/island_v2.glb", // URL to your .glb file
     (gltf) => {
       const model1 = gltf.scene; // Access the loaded model
+
+      model1.traverse((child) => {
+        if (child.isMesh) {
+          const originalColor = child.material.color.clone();
+          child.material = new THREE.MeshToonMaterial({
+            color: originalColor,
+            emissive: child.material.emissive.clone(),
+            map: child.material.map,
+            normalMap: child.material.normalMap,
+            transparent: child.material.transparent,
+            opacity: child.material.opacity,
+          });
+        }
+      });
 
       // Scale the model
       model1.scale.set(0.35, 0.35, 0.35);
@@ -128,9 +175,16 @@ function init() {
   // spotLight.castShadow = false;
   // scene.add(spotLight);
 
-  const pointLight = new THREE.PointLight(0xffffff, 10);
-  pointLight.position.set(0,5,0);
+  const pointLight = new THREE.PointLight(0xffffff, 30);
+  pointLight.position.set(0,5,1);
   scene.add(pointLight);
+
+  // const dirLight = new THREE.DirectionalLight(0xffffff, 1);
+  // dirLight.position.set(10, 20, 10);
+  // dirLight.castShadow = true;
+  // dirLight.shadow.mapSize.width = 2048;
+  // dirLight.shadow.mapSize.height = 2048;
+  // scene.add(dirLight);
 
   // CREATE OCEAN
   // TODO: Joe: Water shading.
@@ -223,7 +277,8 @@ function animate() {
 
   // TODO claire update cubemap texture potentially
 
-  renderer.render(scene, camera);
+  // renderer.render(scene, camera);
+  composer.render();
 }
 
 // renderer.setAnimationLoop( animate );

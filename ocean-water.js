@@ -124,12 +124,19 @@ const fragShader = `
         // amplitude, 
         return bloom * exp(-6.0 * abs(2.5 * dist - 1.5));
     }
+
     float fworley(vec2 v){
         return sqrt(sqrt(sqrt(
             worley(v*5.0 + 0.05*time) *
             sqrt(worley(v * 50.0 + 0.12 + -0.1*time)) *
             sqrt(sqrt(worley(v * -10.0 + 0.03*time
         ))))));
+    }
+
+    vec3 applyToonShading(vec3 color, float intensity) {
+        // Quantize to 4 color bands for toon effect
+        float toonBands = 4.0;
+        return floor(color * toonBands) / toonBands;
     }
 
     void main() {
@@ -148,8 +155,11 @@ const fragShader = `
         // Combine the base pattern and bloom effect
         float finalIntensity = basePattern;
 
+        // Toon Shading 
+        vec3 toonColor = applyToonShading(vec3(0.1, 0.8 * finalIntensity, pow(finalIntensity, 0.5 - finalIntensity)), finalIntensity);
+
         // Final color output
-        gl_FragColor = vec4(finalIntensity * vec3(0.1, 0.8 * finalIntensity, pow(finalIntensity, 0.5 - finalIntensity)), 1.0);
+        gl_FragColor = vec4(toonColor, 1.0);
     }
 `;
 
