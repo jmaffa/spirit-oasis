@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { DragControls } from 'three/addons/controls/DragControls.js';
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import {
   color,
@@ -23,26 +24,41 @@ import { waterMesh } from './pond.js';
 import { createOceanMesh, updateWater } from './ocean-water.js';
 import Cubemap from './cubemap.js';
 import {setUpRain, setUpSplash, updateRain, updateSplash } from './waterfall.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 
-let renderer, scene, camera, cubemap;
+import { ColorifyShader } from 'three/examples/jsm/Addons.js';
 
-let spotLight, lightHelper;
+import { WatercolorShader } from './Watercolor.js';
+
+import { updatePondWater, waterMesh } from './pond.js';
+import { createOceanMesh, updateOcean, INIT_BLOOM } from './ocean-water.js';
+import { updateSimulation, onMouseMove } from './pond-simulation.js';
+import { genBezier, animateFish } from './fish.js';
+import { update } from 'three/examples/jsm/libs/tween.module.js';
+
+let pointLight1;
+let pointLight2;
+
+let renderer, scene, camera, cubemap, dragControls;
+let tui, la;
+const fishArr = [];
+let tuiTime = 0;
+let laTime = 0;
+const redMoonHSL = [0, 1, 1];
+let isTuiDragging, isLaDragging = false;
 
 // Flag to toggle bloom effect in "ocean"
 let bloomOn = false;
 // Constants to change "ocean" position
 const OCEAN_X = 0;
-const OCEAN_Y = -3;
+const OCEAN_Y = -3; // TODO need ocean to stay under island
 const OCEAN_Z = 0;
 
 const ISLAND_X = 0;
-const ISLAND_Y = 0;
+const ISLAND_Y = 1.5;
 const ISLAND_Z = 0;
-const ISLAND_RADIUS = 3;
-
-const BRIDGE_X = -4;
-const BRIDGE_Y = 2;
-const BRIDGE_Z = 2;
 
 const clock = new THREE.Clock();
 
@@ -72,17 +88,6 @@ function setupOcean(){
   scene.add(water);
 }
 
-function setupIsland(){
-  const islandGeometry = new THREE.CylinderGeometry(ISLAND_RADIUS, ISLAND_RADIUS, 5, 32);
-  const islandMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
-  const island = new THREE.Mesh(
-    islandGeometry,
-    islandMaterial
-  )
-  island.position.set(ISLAND_X, ISLAND_Y, ISLAND_Z);
-  scene.add(island);
-}
-
 function setUpMountains(){
   // const waterfall = createWaterfallMesh();
   // waterfall.position.set(5, 2, 5);
@@ -105,45 +110,31 @@ function setUpMountains(){
   scene.add(mountain);
 }
 
-
-function setupBridges(){
+function setupIsland(){
   const loader = new GLTFLoader();
   loader.load(
-    "assets/bridge.glb", // URL to your .glb file
+    "assets/island_v2.glb", // URL to your .glb file
     (gltf) => {
       const model1 = gltf.scene; // Access the loaded model
-      const model2 = model1.clone();
+
+      // Apply Toon Shader
+      model1.traverse((child) => {
+        if (child.isMesh) {
+          const originalColor = child.material.color.clone();
+          child.material = new THREE.MeshToonMaterial({
+            color: originalColor,
+            map: child.material.map,
+          });
+        }
+      });
 
       // Scale the model
-      model1.scale.set(0.5, 0.5, 0.5);
+      model1.scale.set(0.35, 0.35, 0.35);
 
       // Position the model
-      model1.position.set(BRIDGE_X, BRIDGE_Y, BRIDGE_Z);
-      model1.rotation.set(
-        0, 
-        // 0,
-        (5 * Math.PI / 3), 
-        0 // No rotation around the z-axis
-      );
+      model1.position.set(ISLAND_X, ISLAND_Y, ISLAND_Z);
 
-      // Add the model to the scene
-      
-      
-      // Scale the model
-      model2.scale.set(0.5, 0.5, 0.5);
-
-      // Position the model
-      model2.position.set(-BRIDGE_X, BRIDGE_Y, BRIDGE_Z);
-      model2.rotation.set(
-        0, // Rotate 45 degrees around the x-axis
-        7 * Math.PI / 3, // Rotate 90 degrees around the y-axis
-        // 0,
-        0 // No rotation around the z-axis
-      );
       scene.add(model1);
-      scene.add(model2);
-
-      // scene.add(model); // Add it to the scene
     },
     (xhr) => {
       console.log((xhr.loaded / xhr.total) * 100 + "% loaded"); // Progress callback
@@ -153,6 +144,57 @@ function setupBridges(){
     }
   );
 }
+/**
+ * Sets up fish
+ */
+function setUpFish() {
+  const loader = new GLTFLoader();
+
+  const scale = 0.07;
+  loader.load("assets/white_fish.glb", function (gltf) {
+    tui = gltf.scene;
+    tui.scale.set(scale, -scale, scale);
+    tui.position.set(0, 2.2, 2);
+    scene.add(tui);
+    fishArr.push(tui);
+  });
+
+  loader.load("assets/black_fish.glb", function (gltf) {
+    la = gltf.scene;
+    la.scale.set(scale, -scale, scale);
+    la.position.set(0, 2.2, -2);
+    scene.add(la);
+    fishArr.push(la);
+  });
+}
+
+function setUpPondWater() {
+  waterMesh.geometry = new THREE.PlaneGeometry(5, 5, 256, 256); // TODO can adjust to fit island
+  waterMesh.rotation.x = -Math.PI / 2; 
+  waterMesh.position.y = 2.5; // Place the water mesh above slightly below surface of island
+
+  scene.add(waterMesh);
+  document.addEventListener('mousemove', (event) => onMouseMove(event, renderer, camera));
+}
+
+// SET UP WATERCOLOR SHADER
+const composer = new EffectComposer(renderer);
+const renderPass = new RenderPass(scene, camera);
+
+const textureLoader = new THREE.TextureLoader();
+const paperTexture = textureLoader.load('./textures/paper.png')
+
+const watercolorEffect = new ShaderPass(WatercolorShader);
+watercolorEffect.uniforms['tPaper'].value = paperTexture; // Use previously loaded paper texture
+watercolorEffect.uniforms['texel'].value = new THREE.Vector2(1.0 / window.innerWidth, 1.0 / window.innerHeight);
+
+// TESTING: Colorify to Red 
+const colorify = new ShaderPass(ColorifyShader);
+colorify.uniforms["color"].value.setRGB(1,0,0);
+
+composer.addPass(renderPass);
+composer.addPass(watercolorEffect);
+// composer.addPass(colorify);
 
 function createRain(){
   // console.log('test')
@@ -188,9 +230,15 @@ function init() {
   // spotLight.castShadow = false;
   // scene.add(spotLight);
 
-  const pointLight = new THREE.PointLight(0xffffff, 10);
-  pointLight.position.set(0,5,0);
-  scene.add(pointLight);
+  pointLight1 = new THREE.PointLight(0xffffff, 30);
+  pointLight1.position.set(0,5,3);
+  pointLight1.scale.set(2,2,2);
+  scene.add(pointLight1);
+
+  pointLight2 = new THREE.PointLight(0xffffff, 0.5);
+  pointLight2.position.set(0,3,0);
+  pointLight2.scale.set(1,1,1);
+  scene.add(pointLight2);
 
   const light = new THREE.AmbientLight(0x404040); // Soft white light
   scene.add(light);
@@ -201,11 +249,12 @@ function init() {
   // setupOcean();
   
   // CREATE ISLAND
-  // TODO: make this more exciting.
-  // setupIsland();
+  // TODO: need to replace file after baking wood texture
+  setupIsland();
 
-  // setupBridges();
-
+  // CREATE FISH
+  setUpFish();
+  
   // CREATE "MOUNTAIN LAND"
   // TODO: work on this
   // setUpMountains();
@@ -279,6 +328,9 @@ function init() {
 
   scene.background = cubemap.texture;
   waterMesh.material.uniforms.uCubemap = { value: cubemap.texture };
+  
+  // CREATE POND WATER MESH
+  setUpPondWater();
 
   // MOUSE ROTATION CONTROLS
   const controls = new OrbitControls(camera, renderer.domElement);
@@ -288,11 +340,33 @@ function init() {
   controls.maxPolarAngle = Math.PI * 1 / 3;
   controls.target.set(0, 0, 0);
   controls.update();
+
+   // DRAG CONTROLS for fish
+  dragControls = new DragControls( fishArr, camera, renderer.domElement)
+  dragControls.transformGroup = true;
+  dragControls.addEventListener( 'dragstart', function ( event ) {
+    controls.enabled = false;
+    if (event.object == tui) {
+      isTuiDragging = true;
+    } else if (event.object == la) {
+      isLaDragging = true;
+    }
+  } );
+  
+  dragControls.addEventListener( 'dragend', function ( event ) {
+    controls.enabled = true;
+    if (event.object == tui) {
+      console.log("tui");
+      isTuiDragging = false;
+    } else if (event.object == la) {
+      isLaDragging = false;
+    }
+  } );
   
   setupKeyPressInteraction();
   window.addEventListener("resize", onWindowResize);
 
-  
+  const clock = new THREE.Clock();
   renderer.setAnimationLoop(animate);
 }
 
@@ -304,7 +378,6 @@ function onWindowResize() {
 }
 
 function animate() {
-  
   // TODO: post processing?
   // postProcessing.render();
 
@@ -312,13 +385,28 @@ function animate() {
   updateWater(bloomOn);
   updateRain();
   updateSplash();
+
+  // Moves water and controls bloom based on `b` keypress
+  updateOcean(bloomOn);
+  updatePondWater(bloomOn);
   
-  // update the water's time uniform
-  waterMesh.material.uniforms.time.value += 0.1;
+  // Update the water's time uniform
+  waterMesh.material.uniforms.time.value += 0.03;
 
-  // TODO claire update cubemap texture potentially
+  updateSimulation(renderer);
 
-  renderer.render(scene, camera);
+  if (tui) {
+    tuiTime = animateFish(tui, 0, pointLight2, tuiTime, isTuiDragging);
+  }
+
+  if (la) {
+    laTime = animateFish(la, 1, pointLight2, laTime, isLaDragging);
+  }
+
+  if (tui && la) {
+    pointLight2.intensity = Math.max(tui.position.y, la.position.y) * 10 + 10; // light increases as fish position gets higher
+  }
+
+  // renderer.render(scene, camera);
+  composer.render(); // use this to render watercolor shader
 }
-
-// renderer.setAnimationLoop( animate );
