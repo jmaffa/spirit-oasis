@@ -20,6 +20,10 @@ import {
   time,
 } from "three/tsl";
 
+import { waterMesh } from './pond.js';
+import { createOceanMesh, updateWater } from './ocean-water.js';
+import Cubemap from './cubemap.js';
+import {setUpRain, setUpSplash, updateRain, updateSplash } from './waterfall.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
@@ -56,6 +60,8 @@ const ISLAND_X = 0;
 const ISLAND_Y = 1.5;
 const ISLAND_Z = 0;
 
+const clock = new THREE.Clock();
+
 init();
 
 /**
@@ -83,6 +89,11 @@ function setupOcean(){
 }
 
 function setUpMountains(){
+  // const waterfall = createWaterfallMesh();
+  // waterfall.position.set(5, 2, 5);
+  // scene.add(waterfall);
+
+
   const mountainGeometry = new THREE.CylinderGeometry(10, 10, 50, 32);
   const mountainMaterial = new THREE.MeshBasicMaterial({
     color: 0x0000ff, // Inside color
@@ -185,6 +196,17 @@ composer.addPass(renderPass);
 composer.addPass(watercolorEffect);
 // composer.addPass(colorify);
 
+function createRain(){
+  // console.log('test')
+  // const mesh = setUpRain();
+  scene.add(setUpRain());
+  const smokeParticles = setUpSplash();
+  // for(let i = 0; i < smokeParticles.length; i++) {
+  //   scene.add(smokeParticles[i]);
+  // }
+  scene.add(smokeParticles)
+}
+
 function init() {
   // // SET UP SCENE
   scene = new THREE.Scene();
@@ -218,9 +240,13 @@ function init() {
   pointLight2.scale.set(1,1,1);
   scene.add(pointLight2);
 
+  const light = new THREE.AmbientLight(0x404040); // Soft white light
+  scene.add(light);
+
+
   // CREATE OCEAN
   // TODO: Joe: Water shading.
-  setupOcean();
+  // setupOcean();
   
   // CREATE ISLAND
   // TODO: need to replace file after baking wood texture
@@ -228,11 +254,81 @@ function init() {
 
   // CREATE FISH
   setUpFish();
+  
+  // CREATE "MOUNTAIN LAND"
+  // TODO: work on this
+  // setUpMountains();
+
+  // create waterfall effect
+  // const particleSystem = createParticleSystem();
+  // scene.add(particleSystem);
+
+  // CREATE OCEAN
+  // TODO: Joe: Water shading.
+  setupOcean();
+  
+  createRain();
+  // CREATE ISLAND
+  // TODO: make this more exciting.
+  // setupIsland();
 
   // CREATE "MOUNTAIN LAND"
   // TODO: work on this
   setUpMountains();
 
+  const testGeometry = new THREE.CylinderGeometry(1.0, 1.0, 10.0, 3); 
+  const testMaterial = new THREE.MeshStandardMaterial({
+    color: 0x156289,
+  })
+  const testMesh = new THREE.Mesh(
+    testGeometry,
+    testMaterial
+  )
+  testMesh.position.x = 1.0;
+  testMesh.position.z = -7.0;
+  // scene.add(testMesh)
+  
+  // CREATE CUBE
+  // const geometry = new THREE.BoxGeometry(1, 2, 1);
+  // const material = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
+  // const cube = new THREE.Mesh(geometry, material);
+  // cube.position.set(0, 1, 0); // Adjust to lay flat
+  // cube.rotation.z = Math.PI / 2; // Rotate to lay on the long side
+  // scene.add(cube);
+
+  // CREATE POND CYLINDER
+  const pondGeometry = new THREE.CylinderGeometry(2.5, 2.5, 0.5, 64); // radiusTop, radiusBottom, height, radialSegments
+  const pondMaterial = new THREE.MeshStandardMaterial({
+    color: 0x156289,
+    emissive: 0x072534,
+    metalness: 0.5,
+    roughness: 0.7,
+    side: THREE.DoubleSide,
+  }); // TODO claire check and modify
+
+  const pond = new THREE.Mesh(pondGeometry, pondMaterial);
+  pond.position.y = -0.25; // Position it slightly below w ater mesh
+  // scene.add(pond);
+
+  // ADD WATER MESH
+  waterMesh.geometry = new THREE.PlaneGeometry(5, 5, 256, 256); // Match the pond's size
+  waterMesh.rotation.x = -Math.PI / 2; // Lay flat
+  waterMesh.position.y = 0; // Position at the top of the pond
+  // scene.add(waterMesh);
+
+  // LOAD CUBEMAP
+  cubemap = new Cubemap({
+    xpos: 'textures/xpos.png', // TODO claire - files need to include sky reflection
+    xneg: 'textures/xneg.png',
+    ypos: 'textures/ypos.png',
+    yneg: 'textures/yneg.png',
+    zpos: 'textures/zpos.png',
+    zneg: 'textures/zneg.png',
+  });
+
+  scene.background = cubemap.texture;
+  waterMesh.material.uniforms.uCubemap = { value: cubemap.texture };
+  
   // CREATE POND WATER MESH
   setUpPondWater();
 
@@ -282,6 +378,13 @@ function onWindowResize() {
 }
 
 function animate() {
+  // TODO: post processing?
+  // postProcessing.render();
+
+  // Moves water and controls bloom based on `b` keypress
+  updateWater(bloomOn);
+  updateRain();
+  updateSplash();
 
   // Moves water and controls bloom based on `b` keypress
   updateOcean(bloomOn);
