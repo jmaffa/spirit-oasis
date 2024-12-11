@@ -30,9 +30,20 @@ function createMountainMesh(width, depth) {
     mountainGeometry,
     mountainMaterial
   );
-  // TODO: Geometry
-  // TODO: Material
   return mountainMesh;
 }
 
-export { createMountainMesh };
+function createSideLand(){
+  const landGeometry = new THREE.CylinderGeometry(8, 8, 30, 32)
+  const landMaterial = new THREE.MeshStandardMaterial({
+    color: 0xd4e7f3,
+  });
+
+  const landMesh = new THREE.Mesh(
+    landGeometry,
+    landMaterial
+  )
+  return landMesh
+}
+
+export { createMountainMesh, createSideLand };

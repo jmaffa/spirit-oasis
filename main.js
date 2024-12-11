@@ -3,7 +3,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { DragControls } from 'three/addons/controls/DragControls.js';
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-import {setUpWaterfall, setUpSplash, updateWaterfall, updateSplash } from './waterfall.js';
+import {setUpWaterfallMesh, setUpSplash, updateWaterfall, updateSplash } from './waterfall.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
@@ -17,7 +17,7 @@ import { createOceanMesh, updateOcean } from './ocean-water.js';
 import { updateSimulation, onMouseMove } from './pond-simulation.js';
 import { genBezier, animateFish } from './fish.js';
 import { update } from 'three/examples/jsm/libs/tween.module.js';
-import { createMountainMesh } from './mountains.js';
+import { createMountainMesh, createSideLand } from './mountains.js';
 
 let pointLight1;
 let pointLight2;
@@ -69,7 +69,7 @@ function setupOcean(){
 }
 
 function setUpMountains(){
-  // const waterfall = createWaterfallMesh();
+  // const waterfall = setUpWaterfallMesh();
   // waterfall.position.set(5, 2, 5);
   // scene.add(waterfall);
   const mountainMeshBack = createMountainMesh(30, 10);
@@ -101,6 +101,36 @@ function setUpMountains(){
   mountainMeshRightFront.rotation.z = Math.PI / 3;
   scene.add(mountainMeshRightFront);
 
+  const mountainMeshOutsideFrontRight = createMountainMesh(30, 2);
+  mountainMeshOutsideFrontRight.position.set(3.0, 3.0, 28.0);
+  mountainMeshOutsideFrontRight.rotation.x = -Math.PI / 2;
+  mountainMeshOutsideFrontRight.rotation.z = -Math.PI / 2;
+  scene.add(mountainMeshOutsideFrontRight);
+
+  const mountainMeshOutsideFrontLeft = createMountainMesh(30, 2);
+  mountainMeshOutsideFrontLeft.position.set(-3.0, 3.0, 28.0);
+  mountainMeshOutsideFrontLeft.rotation.x = -Math.PI / 2;
+  mountainMeshOutsideFrontLeft.rotation.z = -Math.PI / 2;
+  scene.add(mountainMeshOutsideFrontLeft);
+
+  // Then the land connected to mountains and bridge
+  const rightFrontLand = createSideLand();
+  rightFrontLand.position.set(9.0, -5.0, 4.0);
+  rightFrontLand.rotation.x = -Math.PI / 2;
+  rightFrontLand.rotation.z = -Math.PI / 6;
+  scene.add(rightFrontLand)
+
+  const leftFrontLand = createSideLand();
+  leftFrontLand.position.set(-9.0, -5.0, 4.0);
+  leftFrontLand.rotation.x = -Math.PI / 2;
+  leftFrontLand.rotation.z = Math.PI / 6;
+  scene.add(leftFrontLand);
+
+  const frontLand = createSideLand();
+  frontLand.position.set(0, -5.0, 26.0);
+  frontLand.rotation.x = -Math.PI / 2;
+  // frontLand.rotation.z = -Math.PI / 2;
+  scene.add(frontLand);
 
 }
 
@@ -189,9 +219,9 @@ colorify.uniforms["color"].value.setRGB(1,0,0);
 composer.addPass(renderPass);
 composer.addPass(watercolorEffect);
 
-function createWaterfall(){
+function setUpWaterfall(){
 
-  scene.add(setUpWaterfall());
+  scene.add(setUpWaterfallMesh());
   scene.add(setUpSplash());
 }
 
@@ -238,7 +268,7 @@ function init() {
   // CREATE OCEAN
   setupOcean();
   
-  createWaterfall();
+  setUpWaterfall();
   // CREATE ISLAND
   setupIsland();
 
