@@ -188,24 +188,18 @@ colorify.uniforms["color"].value.setRGB(1,0,0);
 
 composer.addPass(renderPass);
 composer.addPass(watercolorEffect);
-// composer.addPass(colorify);
 
-function createRain(){
-  // console.log('test')
-  // const mesh = setUpWaterfall();
+function createWaterfall(){
+
   scene.add(setUpWaterfall());
-  const smokeParticles = setUpSplash();
-  // for(let i = 0; i < smokeParticles.length; i++) {
-  //   scene.add(smokeParticles[i]);
-  // }
-  scene.add(smokeParticles)
+  scene.add(setUpSplash());
 }
 
 function init() {
   // // SET UP SCENE
   scene = new THREE.Scene();
   scene.background = new THREE.Color( 0x18396d );
-  scene.background = new THREE.Color(0xffffff);
+  // scene.background = new THREE.Color(0xffffff);
 
   // // SET UP CAMERA
   camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
@@ -238,34 +232,17 @@ function init() {
   const light = new THREE.AmbientLight(0x404040); // Soft white light
   scene.add(light);
 
-
-  // CREATE OCEAN
-  // TODO: Joe: Water shading.
-  // setupOcean();
-  
-  // CREATE ISLAND
-  // TODO: need to replace file after baking wood texture
-  // setupIsland();
-
   // CREATE FISH
   setUpFish();
   
-  // CREATE "MOUNTAIN LAND"
-  // TODO: work on this
-  // setUpMountains();
-
-
   // CREATE OCEAN
-  // TODO: Joe: Water shading.
   setupOcean();
   
-  createRain();
+  createWaterfall();
   // CREATE ISLAND
-  // TODO: make this more exciting.
   setupIsland();
 
   // CREATE "MOUNTAIN LAND"
-  // TODO: work on this
   setUpMountains();
   
   // CREATE POND WATER MESH
@@ -273,10 +250,10 @@ function init() {
 
   // MOUSE ROTATION CONTROLS
   const controls = new OrbitControls(camera, renderer.domElement);
-  controls.minDistance = 2;
+  controls.minDistance = 5;
   controls.maxDistance = 10;
   controls.minPolarAngle = 0;
-  controls.maxPolarAngle = Math.PI * 1 / 3;
+  controls.maxPolarAngle = Math.PI * 3 / 10;
   controls.target.set(0, 0, 0);
   controls.update();
 
@@ -320,8 +297,6 @@ function animate() {
   // TODO: post processing?
   // postProcessing.render();
 
-  // Moves water and controls bloom based on `b` keypress
-  // updateWater(bloomOn);
   updateWaterfall();
   updateSplash();
 
