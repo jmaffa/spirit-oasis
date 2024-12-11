@@ -57,10 +57,11 @@ function animateFish(fish, fishInt, light, t, isDragging) {
     // if new cycle
     if (t > 1 && fish.position.y == height && !isDragging) {
       t = 0;
+      const currentPos = fish.position.clone();
       if (fishInt == 0) { // tui
-        tuiCurve = genBezier(fish.position, true);
+        tuiCurve = genBezier(currentPos, true);
       } else if (fishInt == 1) { // la
-        laCurve = genBezier(fish.position, false);
+        laCurve = genBezier(currentPos, false);
       }
     } else 
 

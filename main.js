@@ -34,7 +34,7 @@ const fishArr = [];
 let tuiTime = 0;
 let laTime = 0;
 const redMoonHSL = [0, 1, 1];
-let isDragging = false;
+let isTuiDragging, isLaDragging = false;
 
 // Flag to toggle bloom effect in "ocean"
 let bloomOn = false;
@@ -234,12 +234,21 @@ function init() {
   dragControls.transformGroup = true;
   dragControls.addEventListener( 'dragstart', function ( event ) {
     controls.enabled = false;
-    isDragging = true;
+    if (event.object == tui) {
+      isTuiDragging = true;
+    } else if (event.object == la) {
+      isLaDragging = true;
+    }
   } );
   
   dragControls.addEventListener( 'dragend', function ( event ) {
     controls.enabled = true;
-    isDragging = false;
+    if (event.object == tui) {
+      console.log("tui");
+      isTuiDragging = false;
+    } else if (event.object == la) {
+      isLaDragging = false;
+    }
   } );
   
   setupKeyPressInteraction();
@@ -271,11 +280,11 @@ function animate() {
   // TODO claire update cubemap texture potentially
 
   if (tui) {
-    tuiTime = animateFish(tui, 0, pointLight, tuiTime, isDragging);
+    tuiTime = animateFish(tui, 0, pointLight, tuiTime, isTuiDragging);
   }
 
   if (la) {
-    laTime = animateFish(la, 1, pointLight, laTime, isDragging);
+    laTime = animateFish(la, 1, pointLight, laTime, isLaDragging);
   }
 
   if (tui && la) {
