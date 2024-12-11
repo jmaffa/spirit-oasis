@@ -35,13 +35,8 @@ const OCEAN_Y = -3;
 const OCEAN_Z = 0;
 
 const ISLAND_X = 0;
-const ISLAND_Y = 0;
+const ISLAND_Y = 1.2;
 const ISLAND_Z = 0;
-const ISLAND_RADIUS = 3;
-
-const BRIDGE_X = -4;
-const BRIDGE_Y = 2;
-const BRIDGE_Z = 2;
 
 init();
 
@@ -69,17 +64,6 @@ function setupOcean(){
   scene.add(water);
 }
 
-function setupIsland(){
-  const islandGeometry = new THREE.CylinderGeometry(ISLAND_RADIUS, ISLAND_RADIUS, 5, 32);
-  const islandMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
-  const island = new THREE.Mesh(
-    islandGeometry,
-    islandMaterial
-  )
-  island.position.set(ISLAND_X, ISLAND_Y, ISLAND_Z);
-  scene.add(island);
-}
-
 function setUpMountains(){
   const mountainGeometry = new THREE.CylinderGeometry(10, 10, 50, 32);
   const mountainMaterial = new THREE.MeshBasicMaterial({
@@ -97,44 +81,20 @@ function setUpMountains(){
   scene.add(mountain);
 }
 
-function setupBridges(){
+function setupIsland(){
   const loader = new GLTFLoader();
   loader.load(
-    "assets/bridge.glb", // URL to your .glb file
+    "assets/island_v2.glb", // URL to your .glb file
     (gltf) => {
       const model1 = gltf.scene; // Access the loaded model
-      const model2 = model1.clone();
 
       // Scale the model
-      model1.scale.set(0.5, 0.5, 0.5);
+      model1.scale.set(0.35, 0.35, 0.35);
 
       // Position the model
-      model1.position.set(BRIDGE_X, BRIDGE_Y, BRIDGE_Z);
-      model1.rotation.set(
-        0, 
-        // 0,
-        (5 * Math.PI / 3), 
-        0 // No rotation around the z-axis
-      );
+      model1.position.set(ISLAND_X, ISLAND_Y, ISLAND_Z);
 
-      // Add the model to the scene
-      
-      
-      // Scale the model
-      model2.scale.set(0.5, 0.5, 0.5);
-
-      // Position the model
-      model2.position.set(-BRIDGE_X, BRIDGE_Y, BRIDGE_Z);
-      model2.rotation.set(
-        0, // Rotate 45 degrees around the x-axis
-        7 * Math.PI / 3, // Rotate 90 degrees around the y-axis
-        // 0,
-        0 // No rotation around the z-axis
-      );
       scene.add(model1);
-      scene.add(model2);
-
-      // scene.add(model); // Add it to the scene
     },
     (xhr) => {
       console.log((xhr.loaded / xhr.total) * 100 + "% loaded"); // Progress callback
@@ -177,27 +137,13 @@ function init() {
   setupOcean();
   
   // CREATE ISLAND
-  // TODO: make this more exciting.
+  // TODO: need to replace file after baking wood texture
   setupIsland();
-
-  setupBridges();
 
   // CREATE "MOUNTAIN LAND"
   // TODO: work on this
   setUpMountains();
 
-  // CREATE OCEAN
-  // TODO: Joe: Water shading.
-  setupOcean();
-  
-  // CREATE ISLAND
-  // TODO: make this more exciting.
-  setupIsland();
-
-  // CREATE "MOUNTAIN LAND"
-  // TODO: work on this
-  // setUpMountains();
-  
   // CREATE CUBE
   // const geometry = new THREE.BoxGeometry(1, 2, 1);
   // const material = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
