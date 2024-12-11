@@ -22,7 +22,7 @@ import {
 import { waterMesh } from './pond.js';
 import { createOceanMesh, updateWater } from './ocean-water.js';
 import Cubemap from './cubemap.js';
-import { createParticleSystem, createWaterfallMesh, setUpRain, setUpSplash, updateRain, updateWaterfall, updateWaterfallParticles } from './waterfall.js';
+import {setUpRain, setUpSplash, updateRain, updateSplash } from './waterfall.js';
 
 let renderer, scene, camera, cubemap;
 
@@ -84,25 +84,25 @@ function setupIsland(){
 }
 
 function setUpMountains(){
-  const waterfall = createWaterfallMesh();
-  waterfall.position.set(5, 2, 5);
-  scene.add(waterfall);
+  // const waterfall = createWaterfallMesh();
+  // waterfall.position.set(5, 2, 5);
+  // scene.add(waterfall);
 
 
-  // const mountainGeometry = new THREE.CylinderGeometry(10, 10, 50, 32);
-  // const mountainMaterial = new THREE.MeshBasicMaterial({
-  //   color: 0x0000ff, // Inside color
-  //   // transparent: true, // Make the material transparent/
-  //   opacity: 0.8, // Control transparency level (0 = fully transparent, 1 = fully opaque)
-  //   side: THREE.BackSide, // Render the inside of the cylinder
-  //   wireframe: false, // Optional: Turn off wireframe if not needed
-  // });
-  // const mountain = new THREE.Mesh(
-  //   mountainGeometry,
-  //   mountainMaterial
-  // )
-  // mountain.position.set(0,-5,0);
-  // scene.add(mountain);
+  const mountainGeometry = new THREE.CylinderGeometry(10, 10, 50, 32);
+  const mountainMaterial = new THREE.MeshBasicMaterial({
+    color: 0x0000ff, // Inside color
+    // transparent: true, // Make the material transparent/
+    opacity: 0.8, // Control transparency level (0 = fully transparent, 1 = fully opaque)
+    side: THREE.BackSide, // Render the inside of the cylinder
+    wireframe: false, // Optional: Turn off wireframe if not needed
+  });
+  const mountain = new THREE.Mesh(
+    mountainGeometry,
+    mountainMaterial
+  )
+  mountain.position.set(0,-5,0);
+  scene.add(mountain);
 }
 
 
@@ -225,7 +225,7 @@ function init() {
 
   // CREATE "MOUNTAIN LAND"
   // TODO: work on this
-  // setUpMountains();
+  setUpMountains();
 
   const testGeometry = new THREE.CylinderGeometry(1.0, 1.0, 10.0, 3); 
   const testMaterial = new THREE.MeshStandardMaterial({
@@ -310,10 +310,8 @@ function animate() {
 
   // Moves water and controls bloom based on `b` keypress
   updateWater(bloomOn);
-  updateWaterfall();
   updateRain();
-  // updateWaterfallParticles(clock.getDelta())
-
+  updateSplash();
   
   // update the water's time uniform
   waterMesh.material.uniforms.time.value += 0.1;
