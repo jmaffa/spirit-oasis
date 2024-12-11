@@ -20,37 +20,35 @@ import {
   time,
 } from "three/tsl";
 
-<<<<<<< HEAD
-import { waterMesh } from './pond.js';
-import { createOceanMesh, updateWater, INIT_BLOOM } from './ocean-water.js';
-import Cubemap from './cubemap.js';
-import { animateFish } from './fish.js';
-=======
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { ColorifyShader } from 'three/examples/jsm/Addons.js';
+
 
 import { WatercolorShader } from './Watercolor.js';
 
 import { updatePondWater, waterMesh } from './pond.js';
 import { createOceanMesh, updateOcean, INIT_BLOOM } from './ocean-water.js';
 import { updateSimulation, onMouseMove } from './pond-simulation.js';
-import { genBezier, animateFish } from './fish.js';
->>>>>>> main
+import { animateFish } from './fish.js'; 
 import { update } from 'three/examples/jsm/libs/tween.module.js';
 import { getRayMaterial, generateCones } from './lights.js';
 
-let pointLight;
+let pointLight, pointLight2;
 
 let renderer, scene, camera, cubemap, dragControls;
 let tui, la;
 const fishArr = [];
 let tuiTime = 0;
 let laTime = 0;
-const redMoonColor = new THREE.Color(74/255, 4/255, 4/255);
+const redMoonColor = new THREE.Color(1, 0, 0);
 const whiteMoonColor = new THREE.Color(1, 1, 1);
 let isTuiDragging, isLaDragging = false;
 let godRays = [];
+const colorify = new ShaderPass (ColorifyShader);
+
+
 
 // Flag to toggle bloom effect in "ocean"
 let bloomOn = false;
@@ -189,6 +187,9 @@ watercolorEffect.uniforms['tPaper'].value = paperTexture; // Use previously load
 watercolorEffect.uniforms['texel'].value = new THREE.Vector2(1.0 / window.innerWidth, 1.0 / window.innerHeight);
 
 composer.addPass(renderPass);
+colorify.uniforms["color"].value.setRGB(1, 1, 1);
+colorify.uniforms["tDiffuse"].value = 0;
+// composer.addPass(colorify);
 composer.addPass(watercolorEffect);
 
 function init() {
@@ -218,10 +219,10 @@ function init() {
   pointLight.position.set(0,7,4);
   scene.add(pointLight);
 
-  pointLight = new THREE.PointLight(0xffffff, 0.5);
-  pointLight.position.set(0,2.5,0);
-  pointLight.scale.set(0.3,0.3,0.3);
-  scene.add(pointLight);
+  pointLight2 = new THREE.PointLight(0xffffff, 8);
+  pointLight2.position.set(0,2.5,0);
+  pointLight2.scale.set(0.3,0.3,0.3);
+  scene.add(pointLight2);
 
   // const rayMat = getRayMaterial(camera);
   // const geometry = new THREE.ConeGeometry(10, 20, 32, 1, true); // Open-ended cone
@@ -311,24 +312,24 @@ function animate() {
   updateSimulation(renderer);
 
   if (tui) {
-    tuiTime = animateFish(tui, 0, pointLight, tuiTime, isTuiDragging, godRays);
+    tuiTime = animateFish(tui, 0, pointLight, tuiTime, isTuiDragging, godRays, colorify);
   }
 
   if (la) {
-    laTime = animateFish(la, 1, pointLight, laTime, isLaDragging, godRays);
+    laTime = animateFish(la, 1, pointLight, laTime, isLaDragging, godRays, colorify);
   }
-<<<<<<< HEAD
-  renderer.render(scene, camera);
-}
-
-// renderer.setAnimationLoop( animate );
-=======
 
   if (tui && la) {
     pointLight.intensity = Math.max(tui.position.y, la.position.y) * 10 + 10; // light increases as fish position gets higher
+
+    if (isTuiDragging) {
+      console.log("tui is dragging");
+
+      // colorify.uniforms["color"].value.setRGB(redMoonColor.r, redMoonColor.g, redMoonColor.b);
+    }
   }
 
   // renderer.render(scene, camera);
+
   composer.render(); // use this to render watercolor shader
 }
->>>>>>> main

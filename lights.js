@@ -78,7 +78,7 @@ function createCone(camera) {
 function generateCones(scene, camera) {
 // Generate 20 cones and add them to the scene
   const cones = [];
-  for (let i = 0; i < 40; i++) {
+  for (let i = 0; i < 20; i++) {
     const cone = createCone(camera);
     scene.add(cone);
     cones.push(cone);
