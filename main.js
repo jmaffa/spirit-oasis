@@ -15,10 +15,12 @@ import { WatercolorShader } from './Watercolor.js';
 import { updatePondWater, waterMesh } from './pond.js';
 import { createOceanMesh, updateOcean } from './ocean-water.js';
 import { updateSimulation, onMouseMove } from './pond-simulation.js';
-import { genBezier, animateFish } from './fish.js';
+import { animateFish } from './fish.js'; 
 import { update } from 'three/examples/jsm/libs/tween.module.js';
 import { createMountainMesh, createSideLand } from './mountains.js';
+import { getRayMaterial, generateCones } from './lights.js';
 
+let pointLight, pointLight2;
 let pointLight1;
 let pointLight2;
 
@@ -27,8 +29,13 @@ let tui, la;
 const fishArr = [];
 let tuiTime = 0;
 let laTime = 0;
-const redMoonHSL = [0, 1, 1];
+const redMoonColor = new THREE.Color(1, 0, 0);
+const whiteMoonColor = new THREE.Color(1, 1, 1);
 let isTuiDragging, isLaDragging = false;
+let godRays = [];
+
+
+
 
 // Flag to toggle bloom effect in "ocean"
 let bloomOn = false;
@@ -253,7 +260,7 @@ function init() {
   pointLight1.scale.set(2,2,2);
   scene.add(pointLight1);
 
-  pointLight2 = new THREE.PointLight(0xffffff, 0.5);
+  pointLight2 = new THREE.PointLight(0xffffff, 8);
   pointLight2.position.set(0,3,0);
   pointLight2.scale.set(1,1,1);
   scene.add(pointLight2);
@@ -264,6 +271,7 @@ function init() {
   // CREATE FISH
   setUpFish();
   
+  godRays = generateCones(scene, camera);
   // CREATE OCEAN
   setupOcean();
   
@@ -342,11 +350,11 @@ function animate() {
   updateSimulation(renderer);
 
   if (tui) {
-    tuiTime = animateFish(tui, 0, pointLight2, tuiTime, isTuiDragging);
+    tuiTime = animateFish(tui, 0, pointLight2, tuiTime, isTuiDragging, godRays);
   }
 
   if (la) {
-    laTime = animateFish(la, 1, pointLight2, laTime, isLaDragging);
+    laTime = animateFish(la, 1, pointLight2, laTime, isLaDragging, godRays);
   }
 
   if (tui && la) {
@@ -354,5 +362,6 @@ function animate() {
   }
 
   // renderer.render(scene, camera);
+
   composer.render(); // use this to render watercolor shader
 }
