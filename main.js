@@ -21,6 +21,13 @@ import {
 } from "three/tsl";
 
 import {setUpRain, setUpSplash, updateRain, updateSplash } from './waterfall.js';
+
+import { createGrassPatch } from './Grass.js';
+
+// import { createGrassPatch, setIslandBounds } from './Grass.js';
+
+// let islandBoundingBox, grassLoaded;
+
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
@@ -132,6 +139,11 @@ function setupIsland(){
       model1.position.set(ISLAND_X, ISLAND_Y, ISLAND_Z);
 
       scene.add(model1);
+
+      // // Set bounding box for grass generation
+      // islandBoundingBox = new THREE.Box3().setFromObject(model1);
+      // console.log("Island Bounding Box:", islandBoundingBox);
+      // setIslandBounds(islandBoundingBox);
     },
     (xhr) => {
       console.log((xhr.loaded / xhr.total) * 100 + "% loaded"); // Progress callback
@@ -204,6 +216,18 @@ function createRain(){
   scene.add(smokeParticles)
 }
 
+async function loadAssets() {
+  const GRASS_MODEL_URL = 'assets/grass.glb';
+
+  console.log("Loading grass patches...");
+
+  for (let i = 0; i < 100; i++) {
+    await createGrassPatch(scene, GRASS_MODEL_URL);
+  }
+
+  console.log("Grass patches loaded.");
+}
+
 function init() {
   // // SET UP SCENE
   scene = new THREE.Scene();
@@ -251,24 +275,12 @@ function init() {
 
   // CREATE FISH
   setUpFish();
-  
-  // CREATE "MOUNTAIN LAND"
-  // TODO: work on this
-  // setUpMountains();
-
-  // create waterfall effect
-  // const particleSystem = createParticleSystem();
-  // scene.add(particleSystem);
 
   // CREATE OCEAN
   // TODO: Joe: Water shading.
   setupOcean();
   
   createRain();
-  // CREATE ISLAND
-  // TODO: make this more exciting.
-  // setupIsland();
-
   // CREATE "MOUNTAIN LAND"
   // TODO: work on this
   setUpMountains();
@@ -311,7 +323,13 @@ function init() {
   window.addEventListener("resize", onWindowResize);
 
   const clock = new THREE.Clock();
-  renderer.setAnimationLoop(animate);
+  // renderer.setAnimationLoop(animate);
+  
+  // Load Grass (async)
+  loadAssets().then(() => {
+    console.log("Assets loaded!");
+    renderer.setAnimationLoop(animate); // Start animation loop after loading
+  }); 
 }
 
 function onWindowResize() {
