@@ -20,9 +20,7 @@ import { update } from 'three/examples/jsm/libs/tween.module.js';
 import { createMountainMesh, createSideLand } from './mountains.js';
 import { getRayMaterial, generateCones } from './lights.js';
 
-let pointLight, pointLight2;
-let pointLight1;
-let pointLight2;
+let pointLight1, pointLight2;
 
 let renderer, scene, camera, cubemap, dragControls;
 let tui, la;
