@@ -1,24 +1,23 @@
 import * as THREE from 'three';
 
-let tuiCurve, laCurve;
+let tuiCurve = genBezier(new THREE.Vector3(0, 0, 2), true);
+let laCurve = genBezier(new THREE.Vector3(0, 0, -2), false);
 
-const speed = 0.001;
+const speed = 0.002;
 
 function genBezier(initialPos, isClockwise) {
     const points = [initialPos];
     const height = 0;
-    const minRadius = isClockwise ? 0.75 : 1.8;
+    const minRadius = isClockwise ? 0.75 : 1.9;
     const maxRadius = isClockwise ? 1.8 : 2.75;
 
     const numDivisions = THREE.MathUtils.randInt(6, 12);
     const angleInterval = (2 * Math.PI) / numDivisions;
 
-    // Correctly calculate initial theta
     let theta = Math.atan2(initialPos.z, initialPos.x);
     console.log("Initial theta: " + theta);
 
     for (let i = 0; i < numDivisions; i++) {
-        // Increment or decrement theta based on direction
         theta += isClockwise ? angleInterval : -angleInterval;
 
         // Random radius within bounds
@@ -31,7 +30,6 @@ function genBezier(initialPos, isClockwise) {
         points.push(pt);
     }
 
-    // Create and return the curve
     const curve = new THREE.CatmullRomCurve3(points);
     return curve;
 }
@@ -56,21 +54,14 @@ function updateFishPosition(fish, curve, fishTime) {
  */
 function animateFish(fish, fishInt, spotLight, t, isDragging) {
   if (fish.position.y < -0.05) {fish.position.y = -0.05;} // make sure fish can't be dragged too far down
-    // console.log("la position " + la.position.x + la.position.y + la.position.z);
-
     // if new cycle
-    if (t == 0 && fish.position.y == 0 && !isDragging) {
+    if (t > 1 && fish.position.y == 0 && !isDragging) {
+      t = 0;
       if (fishInt == 0) { // tui
         tuiCurve = genBezier(fish.position, true);
       } else if (fishInt == 1) { // la
         laCurve = genBezier(fish.position, false);
       }
-      t += speed;
-    }
-
-    // if end of cycle
-    if (t > 1) {
-      t = 0;
     }
 
     if (!isDragging) {

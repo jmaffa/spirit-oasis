@@ -271,11 +271,6 @@ function animate() {
   if (tui && la) {
     spotLight.intensity = Math.max(tui.position.y, la.position.y) * 10 + 10; // light increases as fish position gets higher
   }
-  
-
-  
-
-
 
   renderer.render(scene, camera);
 }
