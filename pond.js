@@ -39,8 +39,8 @@ const fragmentShader = `
 
         vec4 textureColor = texture2D(waterTexture, vUv); // Sample the texture
         vec3 color = vec3(0.0, 0.1 + height * 0.2, 0.1);
-        color = mix(textureColor.rgb, color, 0.7); // Blend with the base color
-        color = mix(color, vec3(0.0,0.0,0.3), 0.6); // Blue tint
+        // color = mix(textureColor.rgb, color, 0.7); // Blend with the base color
+        color = mix(color, vec3(0.0,0.0,0.2), 0.6); // Blue tint
 
         gl_FragColor = vec4(color, opacity);
     }
