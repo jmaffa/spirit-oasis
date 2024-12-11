@@ -21,7 +21,6 @@ import {
 
 import { waterMesh } from './pond.js';
 import { createOceanMesh, updateWater, INIT_BLOOM } from './ocean-water.js';
-import Cubemap from './cubemap.js';
 import { updateSimulation, onMouseMove } from './pond-simulation.js';
 
 
@@ -147,6 +146,14 @@ function setupBridges(){
   );
 }
 
+function setUpPondWater() {
+  waterMesh.geometry = new THREE.PlaneGeometry(5, 5, 256, 256); // TODO can adjust to fit island
+  waterMesh.rotation.x = -Math.PI / 2; 
+  waterMesh.position.y = 2.5; // Place the water mesh above slightly below surface of island
+
+  scene.add(waterMesh);
+}
+
 function init() {
   // // SET UP SCENE
   scene = new THREE.Scene();
@@ -191,40 +198,9 @@ function init() {
   // CREATE "MOUNTAIN LAND"
   // TODO: work on this
   // setUpMountains();
-  
-  // CREATE CUBE
-  // const geometry = new THREE.BoxGeometry(1, 2, 1);
-  // const material = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
-  // const cube = new THREE.Mesh(geometry, material);
-  // cube.position.set(0, 1, 0); // Adjust to lay flat
-  // cube.rotation.z = Math.PI / 2; // Rotate to lay on the long side
-  // scene.add(cube);
-  
-  // CREATE POND CYLINDER WITH TRANSPARENCY
-  const pondGeometry = new THREE.CylinderGeometry(2.5, 2.5, 0.5, 64); // radiusTop, radiusBottom, height, radialSegments
-  const pondMaterial = new THREE.MeshStandardMaterial({
-    color: 0x156289,
-    emissive: 0x072534,
-    metalness: 0.5,
-    roughness: 0.7,
-    side: THREE.DoubleSide,
-    transparent: true,
-    opacity: 0.5,  // Control transparency for the sides of the pond
-    refractionRatio: 0.98,  // Simulate refraction for water
-  });
 
-  // This creates the pond as a cylinder
-  const pond = new THREE.Mesh(pondGeometry, pondMaterial);
-  pond.position.y = 1.8; // Position it slightly below the water mesh to create the "pond" look
-  scene.add(pond);
-
-  // ADD WATER MESH AS A TEXTURE ON THE POND
-  waterMesh.geometry = new THREE.PlaneGeometry(5, 5, 256, 256); // Water mesh size matches the pond
-  waterMesh.rotation.x = -Math.PI / 2; // Flat water mesh
-  waterMesh.position.y = 2.5; // Place the water mesh above the pond (slightly inside)
-
-  // Add the water mesh on top of the pond
-  scene.add(waterMesh);
+  // CREATE POND WATER MESH
+  setUpPondWater();
 
   // MOUSE ROTATION CONTROLS
   const controls = new OrbitControls(camera, renderer.domElement);
@@ -238,8 +214,6 @@ function init() {
   setupKeyPressInteraction();
   window.addEventListener("resize", onWindowResize);
 
-  
-
   const clock = new THREE.Clock();
   renderer.setAnimationLoop(animate);
 }
@@ -252,23 +226,15 @@ function onWindowResize() {
 }
 
 document.addEventListener('mousemove', (event) => onMouseMove(event, renderer, camera));
-// window.addEventListener('mousemove', (event) => onMouseMove(event, renderer, camera));
 
 function animate() {
-
-  // TODO: post processing?
-  // postProcessing.render();
 
   // Moves water and controls bloom based on `b` keypress
   updateWater(bloomOn);
   
-  // update the water's time uniform
+  // Update the water's time uniform
   waterMesh.material.uniforms.time.value += 0.03;
-
-  // TODO claire update cubemap texture potentially
 
   updateSimulation(renderer);
   renderer.render(scene, camera);
 }
-
-// renderer.setAnimationLoop( animate );

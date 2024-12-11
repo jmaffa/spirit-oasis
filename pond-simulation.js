@@ -1,13 +1,9 @@
 import * as THREE from 'three';
 import { waterMesh } from './pond.js'
 
-// import dropFragmentShader from './shaders/drop_fragment.glsl';
-// import vertexShader from './shaders/vertex.glsl'
-
 const simulationResolution = 256; // TODO claire check
 
 const textureLoader = new THREE.TextureLoader();
-const pondTexture = textureLoader.load('textures/xneg.jpg');
 
 // Create render targets for the simulation
 const renderTargetA = new THREE.WebGLRenderTarget(simulationResolution, simulationResolution, {
@@ -98,9 +94,8 @@ function updateSimulation(renderer) {
     // Swap the render targets
     [currentRenderTarget, nextRenderTarget] = [nextRenderTarget, currentRenderTarget];
 
-    // Update the water mesh texture
-    // TODO: blend rather than replace?
-    waterMesh.material.uniforms.waterTexture.value = currentRenderTarget.texture;
+    // TODO: Do we need to update water mesh texture?
+    waterMesh.material.uniforms.heightTexture.value = currentRenderTarget.texture;
 
     renderer.setRenderTarget(null);
 }
@@ -121,7 +116,6 @@ function onMouseMove(event, renderer, camera) {
         dropMaterial.uniforms.center.value.set(point.x, point.y);
         dropMaterial.uniforms.strength.value = 1.0;
 
-        // Trigger simulation update
         updateSimulation(renderer);
     }
 }
