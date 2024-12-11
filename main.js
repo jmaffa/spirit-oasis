@@ -20,9 +20,6 @@ import {
   time,
 } from "three/tsl";
 
-import { waterMesh } from './pond.js';
-import { createOceanMesh, updateWater } from './ocean-water.js';
-import Cubemap from './cubemap.js';
 import {setUpRain, setUpSplash, updateRain, updateSplash } from './waterfall.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
@@ -275,59 +272,6 @@ function init() {
   // CREATE "MOUNTAIN LAND"
   // TODO: work on this
   setUpMountains();
-
-  const testGeometry = new THREE.CylinderGeometry(1.0, 1.0, 10.0, 3); 
-  const testMaterial = new THREE.MeshStandardMaterial({
-    color: 0x156289,
-  })
-  const testMesh = new THREE.Mesh(
-    testGeometry,
-    testMaterial
-  )
-  testMesh.position.x = 1.0;
-  testMesh.position.z = -7.0;
-  // scene.add(testMesh)
-  
-  // CREATE CUBE
-  // const geometry = new THREE.BoxGeometry(1, 2, 1);
-  // const material = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
-  // const cube = new THREE.Mesh(geometry, material);
-  // cube.position.set(0, 1, 0); // Adjust to lay flat
-  // cube.rotation.z = Math.PI / 2; // Rotate to lay on the long side
-  // scene.add(cube);
-
-  // CREATE POND CYLINDER
-  const pondGeometry = new THREE.CylinderGeometry(2.5, 2.5, 0.5, 64); // radiusTop, radiusBottom, height, radialSegments
-  const pondMaterial = new THREE.MeshStandardMaterial({
-    color: 0x156289,
-    emissive: 0x072534,
-    metalness: 0.5,
-    roughness: 0.7,
-    side: THREE.DoubleSide,
-  }); // TODO claire check and modify
-
-  const pond = new THREE.Mesh(pondGeometry, pondMaterial);
-  pond.position.y = -0.25; // Position it slightly below w ater mesh
-  // scene.add(pond);
-
-  // ADD WATER MESH
-  waterMesh.geometry = new THREE.PlaneGeometry(5, 5, 256, 256); // Match the pond's size
-  waterMesh.rotation.x = -Math.PI / 2; // Lay flat
-  waterMesh.position.y = 0; // Position at the top of the pond
-  // scene.add(waterMesh);
-
-  // LOAD CUBEMAP
-  cubemap = new Cubemap({
-    xpos: 'textures/xpos.png', // TODO claire - files need to include sky reflection
-    xneg: 'textures/xneg.png',
-    ypos: 'textures/ypos.png',
-    yneg: 'textures/yneg.png',
-    zpos: 'textures/zpos.png',
-    zneg: 'textures/zneg.png',
-  });
-
-  scene.background = cubemap.texture;
-  waterMesh.material.uniforms.uCubemap = { value: cubemap.texture };
   
   // CREATE POND WATER MESH
   setUpPondWater();
@@ -382,7 +326,7 @@ function animate() {
   // postProcessing.render();
 
   // Moves water and controls bloom based on `b` keypress
-  updateWater(bloomOn);
+  // updateWater(bloomOn);
   updateRain();
   updateSplash();
 
