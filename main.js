@@ -23,7 +23,7 @@ import {
 import { waterMesh } from './pond.js';
 import { createOceanMesh, updateWater, INIT_BLOOM } from './ocean-water.js';
 import Cubemap from './cubemap.js';
-import { updateTui, updateLa, bezierCurve, genBezier } from './fish.js';
+import { genBezier, animateFish } from './fish.js';
 import { update } from 'three/examples/jsm/libs/tween.module.js';
 
 let spotLight;
@@ -34,10 +34,6 @@ let laModel;
 const fishArr = [];
 let tuiTime = 0;
 let laTime = 0;
-let laSpeed = 0.002;
-let tuiCurve = bezierCurve(new THREE.Vector3(0, 0, 2), true);
-let laCurve = genBezier(new THREE.Vector3(0, 0, -2), false);
-const lightTransitionSpeed = 0.08;
 const redMoonHSL = [0, 1, 1];
 let isDragging = false;
 
@@ -114,14 +110,11 @@ function setUpFish() {
     tui.scale.set(scale, -scale, scale);
     scene.add(tui);
     fishArr.push(tui);
-    // tui.uniforms.time.value;
   });
 
   loader.load("assets/black_fish.glb", function (gltf) {
-    laModel = gltf.scene;
-    la = new THREE.Group();
-    laModel.scale.set(scale, -scale, scale);
-    la.add(laModel);
+    la = gltf.scene;
+    la.scale.set(scale, -scale, scale);
     la.position.set(0, 0, -2);
     scene.add(la);
     fishArr.push(la);
@@ -268,60 +261,19 @@ function animate() {
   // TODO claire update cubemap texture potentially
 
   if (tui) {
-    if (tuiTime > 1) {
-      tuiTime = 0;
-      tuiCurve = bezierCurve(tui.position, true);
-    }
-    updateTui(tui, tuiCurve, tuiTime);
-    tuiTime += 0.002;
+    tuiTime = animateFish(tui, 0, spotLight, tuiTime, isDragging);
   }
 
   if (la) {
-    spotLight.intensity = la.position.y * 10 + 10;
-    // console.log("la position " + la.position.x + la.position.y + la.position.z);
-
-    if (laTime == 0 && la.position.y == 0 && !isDragging) {
-      console.log("la curve regenerated");
-      console.log("la position " + la.position.x+ " " + la.position.y + " "+la.position.z);
-      // laCurve = bezierCurve(la.position, false);
-      laCurve = genBezier(la.position, false);
-      // laTime += laSpeed;
-    }
-    if (laTime > 1) {
-      laTime = 0;
-    }
-
-    if (!isDragging) {
-      if (la.position.y == 0) {
-        updateLa(la, laCurve, laTime);
-        laTime += laSpeed;
-      } else {
-        console.log("la falling position " + la.position.x+ " " + la.position.y + " "+la.position.z);
-
-        la.position.y -= 0.35;
-        if (la.position.y < 0) {
-          la.position.y = 0;
-          laCurve = genBezier(la.position, false);
-        }
-      }
-    } else {
-      laTime = 0;
-    }
-
-    // if (laTime > 1) {
-    //   laTime = 0;
-    //   laCurve = bezierCurve(false);
-    // }
-
-    // if (laSpeed == 0) {
-    //   spotLight.color.setHSL(1, 1, 1);
-    //   console.log(la.position.y);
-    //   spotLight.intensity = la.position.y * 10 + 10;
-    // } else {
-    //   updateLa(la, laCurve, laTime);
-    //   laTime += laSpeed;
-    // }
+    laTime = animateFish(la, 1, spotLight, laTime, isDragging);
   }
+
+  if (tui && la) {
+    spotLight.intensity = Math.max(tui.position.y, la.position.y) * 10 + 10; // light increases as fish position gets higher
+  }
+  
+
+  
 
 
 
