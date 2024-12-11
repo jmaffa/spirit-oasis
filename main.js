@@ -34,7 +34,7 @@ let isTuiDragging, isLaDragging = false;
 let bloomOn = false;
 // Constants to change "ocean" position
 const OCEAN_X = 0;
-const OCEAN_Y = -3; // TODO need ocean to stay under island
+const OCEAN_Y = -3.5; // TODO need ocean to stay under island
 const OCEAN_Z = 0;
 
 const ISLAND_X = 0;
@@ -68,10 +68,10 @@ function setupOcean(){
   scene.add(water);
 }
 
+/**
+ * Sets up simple mountains / external land in the scene
+ */
 function setUpMountains(){
-  // const waterfall = setUpWaterfallMesh();
-  // waterfall.position.set(5, 2, 5);
-  // scene.add(waterfall);
   const mountainMeshBack = createMountainMesh(30, 10);
   mountainMeshBack.position.set(0,3.0,-15.0);
   mountainMeshBack.rotation.x = -Math.PI / 2; 
@@ -115,21 +115,20 @@ function setUpMountains(){
 
   // Then the land connected to mountains and bridge
   const rightFrontLand = createSideLand();
-  rightFrontLand.position.set(9.0, -5.0, 4.0);
+  rightFrontLand.position.set(9.0, -6.0, 4.0);
   rightFrontLand.rotation.x = -Math.PI / 2;
   rightFrontLand.rotation.z = -Math.PI / 6;
   scene.add(rightFrontLand)
 
   const leftFrontLand = createSideLand();
-  leftFrontLand.position.set(-9.0, -5.0, 4.0);
+  leftFrontLand.position.set(-9.0, -6.0, 4.0);
   leftFrontLand.rotation.x = -Math.PI / 2;
   leftFrontLand.rotation.z = Math.PI / 6;
   scene.add(leftFrontLand);
 
   const frontLand = createSideLand();
-  frontLand.position.set(0, -5.0, 26.0);
+  frontLand.position.set(0, -6.0, 26.0);
   frontLand.rotation.x = -Math.PI / 2;
-  // frontLand.rotation.z = -Math.PI / 2;
   scene.add(frontLand);
 
 }
@@ -268,11 +267,13 @@ function init() {
   // CREATE OCEAN
   setupOcean();
   
+  // CREATE WATERFALL
   setUpWaterfall();
+
   // CREATE ISLAND
   setupIsland();
 
-  // CREATE "MOUNTAIN LAND"
+  // CREATE MOUNTAINS
   setUpMountains();
   
   // CREATE POND WATER MESH
@@ -327,6 +328,7 @@ function animate() {
   // TODO: post processing?
   // postProcessing.render();
 
+  // Animates waterfall movement and splash
   updateWaterfall();
   updateSplash();
 
