@@ -23,7 +23,7 @@ let splashMesh;
  * Simulates a waterfall particle system with falling particles
  * @returns Waterfall Mesh
  */
-function setUpWaterfall(){
+function setUpWaterfallMesh(){
   // Create waterdrop as a flat plane
   const waterdropGeometry = new THREE.PlaneGeometry(0.1, 3.0);
   waterdropGeometry.rotateX(Math.PI / 2);
@@ -166,4 +166,4 @@ function updateSplash(){
   splashMesh.geometry.attributes.position.needsUpdate = true;
 }
 
-export { setUpWaterfall, updateWaterfall, setUpSplash, updateSplash };
+export { setUpWaterfallMesh, updateWaterfall, setUpSplash, updateSplash };
