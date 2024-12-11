@@ -139,11 +139,6 @@ function setupIsland(){
       model1.position.set(ISLAND_X, ISLAND_Y, ISLAND_Z);
 
       scene.add(model1);
-
-      // // Set bounding box for grass generation
-      // islandBoundingBox = new THREE.Box3().setFromObject(model1);
-      // console.log("Island Bounding Box:", islandBoundingBox);
-      // setIslandBounds(islandBoundingBox);
     },
     (xhr) => {
       console.log((xhr.loaded / xhr.total) * 100 + "% loaded"); // Progress callback
@@ -216,7 +211,7 @@ function createRain(){
   scene.add(smokeParticles)
 }
 
-async function loadAssets() {
+async function setUpGrass() {
   const GRASS_MODEL_URL = 'assets/grass.glb';
 
   console.log("Loading grass patches...");
@@ -323,12 +318,11 @@ function init() {
   window.addEventListener("resize", onWindowResize);
 
   const clock = new THREE.Clock();
-  // renderer.setAnimationLoop(animate);
   
   // Load Grass (async)
-  loadAssets().then(() => {
+  setUpGrass().then(() => {
     console.log("Assets loaded!");
-    renderer.setAnimationLoop(animate); // Start animation loop after loading
+    renderer.setAnimationLoop(animate); // start animation loop after loading
   }); 
 }
 

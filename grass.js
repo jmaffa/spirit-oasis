@@ -1,16 +1,12 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
-let grassStuff;
+let grassBlade;
 const GRASS_COUNT = 1000;
-// let islandBoundingBox;
 
-// // Set Island Bounds
-// export function setIslandBounds(boundingBox) {
-//     islandBoundingBox = boundingBox;
-// }
+const POND_CENTER = new THREE.Vector2(0, 0);  // center of pond 
+const POND_RADIUS = 1.7;  // pond radius
 
-// Custom Grass Material
 class GrassMaterial extends THREE.ShaderMaterial {
   uniforms = {
     fTime: { value: 0.0 },
@@ -92,12 +88,12 @@ class GrassMaterial extends THREE.ShaderMaterial {
   }
 }
 
-// Create Grass Patch Function
+// create grass patch
 export const createGrassPatch = async (scene, grassModelURL) => {
-  if (!grassStuff) {
+  if (!grassBlade) {
     const loader = new GLTFLoader();
 
-    // Load Model with Progress
+    // load model
     const gltf = await new Promise((resolve, reject) => {
       loader.load(
         grassModelURL,
@@ -109,7 +105,7 @@ export const createGrassPatch = async (scene, grassModelURL) => {
 
     console.log("Grass model fully loaded!");
 
-    grassStuff = {
+    grassBlade = {
       clock: new THREE.Clock(),
       mesh: new THREE.InstancedMesh(
         gltf.scene.children[0].geometry.clone(),
@@ -118,43 +114,48 @@ export const createGrassPatch = async (scene, grassModelURL) => {
       ),
       instances: [],
       update: () => {
-        grassStuff.instances.forEach((grass, index) => {
+        grassBlade.instances.forEach((grass, index) => {
           grass.updateMatrix();
-          grassStuff.mesh.setMatrixAt(index, grass.matrix);
+          grassBlade.mesh.setMatrixAt(index, grass.matrix);
         });
 
-        grassStuff.mesh.instanceMatrix.needsUpdate = true;
-        grassStuff.mesh.material.uniforms.fTime.value = grassStuff.clock.getElapsedTime();
-        requestAnimationFrame(grassStuff.update);
+        grassBlade.mesh.instanceMatrix.needsUpdate = true;
+        grassBlade.mesh.material.uniforms.fTime.value = grassBlade.clock.getElapsedTime();
+        requestAnimationFrame(grassBlade.update);
       }
     };
 
-    scene.add(grassStuff.mesh);
-    grassStuff.mesh.position.y = -2.0;
-    grassStuff.update();
+    scene.add(grassBlade.mesh);
+    grassBlade.mesh.position.y = -2.0;
+    grassBlade.update();
 
-    // Initialize Instances
+    // init glass insantace
     const empty = new THREE.Object3D();
     empty.scale.setScalar(0.0);
     empty.updateMatrix();
 
     for (let i = 0; i < GRASS_COUNT; i++) {
-      grassStuff.mesh.setMatrixAt(i, empty.matrix);
-      grassStuff.mesh.setColorAt(i, new THREE.Color(Math.random() * 0xffffff));
+      grassBlade.mesh.setMatrixAt(i, empty.matrix);
+      grassBlade.mesh.setColorAt(i, new THREE.Color(Math.random() * 0xffffff));
     }
 
-    grassStuff.mesh.instanceColor.needsUpdate = true;
-    grassStuff.mesh.instanceMatrix.needsUpdate = true;
+    grassBlade.mesh.instanceColor.needsUpdate = true;
+    grassBlade.mesh.instanceMatrix.needsUpdate = true;
   }
 
+  let grassPosition; 
+
+  do {
+    const x = Math.random() * 4.2 - 2.3;   // grass X range
+    const z = Math.random() * 7 - 3.3;    // grass Z range
+    grassPosition = new THREE.Vector2(x, z);
+  } while (grassPosition.distanceTo(POND_CENTER) < POND_RADIUS);
+
+  // create grass instance
   const grass = new THREE.Object3D();
-  grass.position.set(
-    Math.random() * 5 - 2.4,
-    5,
-    Math.random() * 6 - 2
-  );
+  grass.position.set(grassPosition.x, 4.8, grassPosition.y);  // Slightly above ground
   grass.rotation.y = Math.random() * Math.PI * 2.0;
   grass.scale.setScalar(Math.random() * 0.1);
 
-  grassStuff.instances.push(grass);
+  grassBlade.instances.push(grass);
 };
