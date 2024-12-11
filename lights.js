@@ -58,19 +58,20 @@ function getRayMaterial(camera) {
 function createCone(camera) {
   const radius = Math.random() * 2;  // Random radius between 0 and 2
   const height = 40;  // Fixed height for all cones
+  // const geometry = new THREE.BoxGeometry(radius, height, 5);
   const geometry = new THREE.ConeGeometry(radius, height, 32);
 
   const cone = new THREE.Mesh(geometry, getRayMaterial(camera));
 
-  // Random position within a small cluster (e.g., -5 to 5 units in each direction)
   const range = 5;
   cone.position.set(
-      Math.random() * range - range/2,  // Random X position (-2.5 to 2.5)
-      Math.random() * range - range/2,  // Random Y position (-2.5 to 2.5)
-      Math.random() * range - range/4  // Random Z position (-2.5 to 2.5)
+      Math.random() * range - range/2,
+      Math.random() * range - range/2,
+      Math.random() * range - range/4
   );
 
   cone.rotation.x = -.5;
+  cone.rotation.y = Math.random() * 0.5;
 
   return cone;
 }

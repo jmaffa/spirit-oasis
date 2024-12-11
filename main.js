@@ -23,7 +23,6 @@ import {
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-import { ColorifyShader } from 'three/examples/jsm/Addons.js';
 
 
 import { WatercolorShader } from './Watercolor.js';
@@ -46,7 +45,7 @@ const redMoonColor = new THREE.Color(1, 0, 0);
 const whiteMoonColor = new THREE.Color(1, 1, 1);
 let isTuiDragging, isLaDragging = false;
 let godRays = [];
-const colorify = new ShaderPass (ColorifyShader);
+
 
 
 
@@ -187,9 +186,6 @@ watercolorEffect.uniforms['tPaper'].value = paperTexture; // Use previously load
 watercolorEffect.uniforms['texel'].value = new THREE.Vector2(1.0 / window.innerWidth, 1.0 / window.innerHeight);
 
 composer.addPass(renderPass);
-colorify.uniforms["color"].value.setRGB(1, 1, 1);
-colorify.uniforms["tDiffuse"].value = 0;
-// composer.addPass(colorify);
 composer.addPass(watercolorEffect);
 
 function init() {
@@ -312,11 +308,11 @@ function animate() {
   updateSimulation(renderer);
 
   if (tui) {
-    tuiTime = animateFish(tui, 0, pointLight, tuiTime, isTuiDragging, godRays, colorify);
+    tuiTime = animateFish(tui, 0, pointLight, tuiTime, isTuiDragging, godRays);
   }
 
   if (la) {
-    laTime = animateFish(la, 1, pointLight, laTime, isLaDragging, godRays, colorify);
+    laTime = animateFish(la, 1, pointLight, laTime, isLaDragging, godRays);
   }
 
   if (tui && la) {
@@ -324,8 +320,6 @@ function animate() {
 
     if (isTuiDragging) {
       console.log("tui is dragging");
-
-      // colorify.uniforms["color"].value.setRGB(redMoonColor.r, redMoonColor.g, redMoonColor.b);
     }
   }
 

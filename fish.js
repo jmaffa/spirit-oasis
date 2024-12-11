@@ -1,6 +1,4 @@
 import * as THREE from 'three';
-import { ColorifyShader } from 'three/examples/jsm/Addons.js';
-import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 
 
 const height = 2.2;
@@ -60,7 +58,7 @@ function updateFishPosition(fish, curve, fishTime) {
  * @param {*} godRays 
  * @returns 
  */
-function animateFish(fish, fishInt, light, t, isDragging, godRays, colorify) {
+function animateFish(fish, fishInt, light, t, isDragging, godRays) {
   if (fish.position.y < height-0.05) {fish.position.y = height-0.05;} // make sure fish can't be dragged too far down
   if (fish.position.y > height + 2) {fish.position.y = height+2;}
     // if new cycle
@@ -88,13 +86,12 @@ function animateFish(fish, fishInt, light, t, isDragging, godRays, colorify) {
         if (fish.position.y < height) {
           fish.position.y = height; // make sure she lands at zero
         }
-        // light.intensity = fish.position.y * 10 + 10; // light increases as fish position gets higher
+        
       light.color = new THREE.Color().lerpColors(whiteMoonColor, redMoonColor, (fish.position.y - 2.2)/2);
       if (fish.position.y != 2.2) {
         for (let i = 0; i < godRays.length; i++) {
           const ray = godRays[i];
-          const newColor = new THREE.Color().lerpColors(whiteMoonColor, redMoonColor, (fish.position.y - 2.2)/2);
-          colorify.uniforms["color"].value.setRGB(newColor.r, newColor.g, newColor.b);
+          ray.material.uniforms.glowColor.value = new THREE.Color().lerpColors(whiteMoonColor, redMoonColor, (fish.position.y - 2.2)/2);
         }
       }
       }
@@ -103,13 +100,11 @@ function animateFish(fish, fishInt, light, t, isDragging, godRays, colorify) {
     }
 
     if (isDragging) {
-      // light.intensity = fish.position.y * 10 + 10; // light increases as fish position gets higher
-      // light.color = new THREE.Color().lerpColors(whiteMoonColor, redMoonColor, (fish.position.y - 2.2)/2);
+      light.color = new THREE.Color().lerpColors(whiteMoonColor, redMoonColor, (fish.position.y - 2.2)/2);
       if (fish.position.y != 2.2) {
         for (let i = 0; i < godRays.length; i++) {
           const ray = godRays[i];
-          const newColor = new THREE.Color().lerpColors(whiteMoonColor, redMoonColor, (fish.position.y - 2.2)/2);
-          colorify.uniforms["color"].value.setRGB(newColor.r, newColor.g, newColor.b);
+          ray.material.uniforms.glowColor.value = new THREE.Color().lerpColors(whiteMoonColor, redMoonColor, (fish.position.y - 2.2)/2);
         }
       }
     }
