@@ -20,8 +20,9 @@ import {
 } from "three/tsl";
 
 import { waterMesh } from './pond.js';
-import { createOceanMesh, updateWater, INIT_BLOOM } from './ocean-water.js';
+import { createOceanMesh, updateWater } from './ocean-water.js';
 import Cubemap from './cubemap.js';
+import { createParticleSystem, createWaterfallMesh, setUpRain, setUpSplash, updateRain, updateWaterfall, updateWaterfallParticles } from './waterfall.js';
 
 let renderer, scene, camera, cubemap;
 
@@ -42,6 +43,8 @@ const ISLAND_RADIUS = 3;
 const BRIDGE_X = -4;
 const BRIDGE_Y = 2;
 const BRIDGE_Z = 2;
+
+const clock = new THREE.Clock();
 
 init();
 
@@ -81,21 +84,27 @@ function setupIsland(){
 }
 
 function setUpMountains(){
-  const mountainGeometry = new THREE.CylinderGeometry(10, 10, 50, 32);
-  const mountainMaterial = new THREE.MeshBasicMaterial({
-    color: 0x0000ff, // Inside color
-    // transparent: true, // Make the material transparent/
-    opacity: 0.8, // Control transparency level (0 = fully transparent, 1 = fully opaque)
-    side: THREE.BackSide, // Render the inside of the cylinder
-    wireframe: false, // Optional: Turn off wireframe if not needed
-  });
-  const mountain = new THREE.Mesh(
-    mountainGeometry,
-    mountainMaterial
-  )
-  mountain.position.set(0,-5,0);
-  scene.add(mountain);
+  const waterfall = createWaterfallMesh();
+  waterfall.position.set(5, 2, 5);
+  scene.add(waterfall);
+
+
+  // const mountainGeometry = new THREE.CylinderGeometry(10, 10, 50, 32);
+  // const mountainMaterial = new THREE.MeshBasicMaterial({
+  //   color: 0x0000ff, // Inside color
+  //   // transparent: true, // Make the material transparent/
+  //   opacity: 0.8, // Control transparency level (0 = fully transparent, 1 = fully opaque)
+  //   side: THREE.BackSide, // Render the inside of the cylinder
+  //   wireframe: false, // Optional: Turn off wireframe if not needed
+  // });
+  // const mountain = new THREE.Mesh(
+  //   mountainGeometry,
+  //   mountainMaterial
+  // )
+  // mountain.position.set(0,-5,0);
+  // scene.add(mountain);
 }
+
 
 function setupBridges(){
   const loader = new GLTFLoader();
@@ -145,6 +154,17 @@ function setupBridges(){
   );
 }
 
+function createRain(){
+  // console.log('test')
+  // const mesh = setUpRain();
+  scene.add(setUpRain());
+  const smokeParticles = setUpSplash();
+  // for(let i = 0; i < smokeParticles.length; i++) {
+  //   scene.add(smokeParticles[i]);
+  // }
+  scene.add(smokeParticles)
+}
+
 function init() {
   // // SET UP SCENE
   scene = new THREE.Scene();
@@ -172,31 +192,52 @@ function init() {
   pointLight.position.set(0,5,0);
   scene.add(pointLight);
 
-  // CREATE OCEAN
-  // TODO: Joe: Water shading.
-  setupOcean();
-  
-  // CREATE ISLAND
-  // TODO: make this more exciting.
-  setupIsland();
+  const light = new THREE.AmbientLight(0x404040); // Soft white light
+  scene.add(light);
 
-  setupBridges();
-
-  // CREATE "MOUNTAIN LAND"
-  // TODO: work on this
-  setUpMountains();
 
   // CREATE OCEAN
   // TODO: Joe: Water shading.
-  setupOcean();
+  // setupOcean();
   
   // CREATE ISLAND
   // TODO: make this more exciting.
-  setupIsland();
+  // setupIsland();
+
+  // setupBridges();
 
   // CREATE "MOUNTAIN LAND"
   // TODO: work on this
   // setUpMountains();
+
+  // create waterfall effect
+  // const particleSystem = createParticleSystem();
+  // scene.add(particleSystem);
+
+  // CREATE OCEAN
+  // TODO: Joe: Water shading.
+  setupOcean();
+  
+  createRain();
+  // CREATE ISLAND
+  // TODO: make this more exciting.
+  // setupIsland();
+
+  // CREATE "MOUNTAIN LAND"
+  // TODO: work on this
+  // setUpMountains();
+
+  const testGeometry = new THREE.CylinderGeometry(1.0, 1.0, 10.0, 3); 
+  const testMaterial = new THREE.MeshStandardMaterial({
+    color: 0x156289,
+  })
+  const testMesh = new THREE.Mesh(
+    testGeometry,
+    testMaterial
+  )
+  testMesh.position.x = 1.0;
+  testMesh.position.z = -7.0;
+  // scene.add(testMesh)
   
   // CREATE CUBE
   // const geometry = new THREE.BoxGeometry(1, 2, 1);
@@ -252,8 +293,6 @@ function init() {
   window.addEventListener("resize", onWindowResize);
 
   
-
-  const clock = new THREE.Clock();
   renderer.setAnimationLoop(animate);
 }
 
@@ -265,12 +304,16 @@ function onWindowResize() {
 }
 
 function animate() {
-
+  
   // TODO: post processing?
   // postProcessing.render();
 
   // Moves water and controls bloom based on `b` keypress
   updateWater(bloomOn);
+  updateWaterfall();
+  updateRain();
+  // updateWaterfallParticles(clock.getDelta())
+
   
   // update the water's time uniform
   waterMesh.material.uniforms.time.value += 0.1;
