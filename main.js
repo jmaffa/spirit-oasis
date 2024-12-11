@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { DragControls } from 'three/addons/controls/DragControls.js';
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import {
   color,
@@ -22,11 +23,18 @@ import {
 import { waterMesh } from './pond.js';
 import { createOceanMesh, updateWater, INIT_BLOOM } from './ocean-water.js';
 import { updateSimulation, onMouseMove } from './pond-simulation.js';
+import { genBezier, animateFish } from './fish.js';
+import { update } from 'three/examples/jsm/libs/tween.module.js';
 
+let pointLight;
 
-let renderer, scene, camera, cubemap;
-
-let spotLight, lightHelper;
+let renderer, scene, camera, cubemap, dragControls;
+let tui, la;
+const fishArr = [];
+let tuiTime = 0;
+let laTime = 0;
+const redMoonHSL = [0, 1, 1];
+let isTuiDragging, isLaDragging = false;
 
 // Flag to toggle bloom effect in "ocean"
 let bloomOn = false;
@@ -36,13 +44,8 @@ const OCEAN_Y = -4; // CLAIRE lowered slightly
 const OCEAN_Z = 0;
 
 const ISLAND_X = 0;
-const ISLAND_Y = 0;
+const ISLAND_Y = 1.2;
 const ISLAND_Z = 0;
-const ISLAND_RADIUS = 3;
-
-const BRIDGE_X = -4;
-const BRIDGE_Y = 2;
-const BRIDGE_Z = 2;
 
 init();
 
@@ -70,17 +73,6 @@ function setupOcean(){
   scene.add(water);
 }
 
-function setupIsland(){
-  const islandGeometry = new THREE.CylinderGeometry(ISLAND_RADIUS, ISLAND_RADIUS, 5, 32);
-  const islandMaterial = new THREE.MeshStandardMaterial({ color: 0x00ff00 });
-  const island = new THREE.Mesh(
-    islandGeometry,
-    islandMaterial
-  )
-  island.position.set(ISLAND_X, ISLAND_Y, ISLAND_Z);
-  scene.add(island);
-}
-
 function setUpMountains(){
   const mountainGeometry = new THREE.CylinderGeometry(10, 10, 50, 32);
   const mountainMaterial = new THREE.MeshBasicMaterial({
@@ -98,44 +90,20 @@ function setUpMountains(){
   scene.add(mountain);
 }
 
-function setupBridges(){
+function setupIsland(){
   const loader = new GLTFLoader();
   loader.load(
-    "assets/bridge.glb", // URL to your .glb file
+    "assets/island_v2.glb", // URL to your .glb file
     (gltf) => {
       const model1 = gltf.scene; // Access the loaded model
-      const model2 = model1.clone();
 
       // Scale the model
-      model1.scale.set(0.5, 0.5, 0.5);
+      model1.scale.set(0.35, 0.35, 0.35);
 
       // Position the model
-      model1.position.set(BRIDGE_X, BRIDGE_Y, BRIDGE_Z);
-      model1.rotation.set(
-        0, 
-        // 0,
-        (5 * Math.PI / 3), 
-        0 // No rotation around the z-axis
-      );
+      model1.position.set(ISLAND_X, ISLAND_Y, ISLAND_Z);
 
-      // Add the model to the scene
-      
-      
-      // Scale the model
-      model2.scale.set(0.5, 0.5, 0.5);
-
-      // Position the model
-      model2.position.set(-BRIDGE_X, BRIDGE_Y, BRIDGE_Z);
-      model2.rotation.set(
-        0, // Rotate 45 degrees around the x-axis
-        7 * Math.PI / 3, // Rotate 90 degrees around the y-axis
-        // 0,
-        0 // No rotation around the z-axis
-      );
       scene.add(model1);
-      scene.add(model2);
-
-      // scene.add(model); // Add it to the scene
     },
     (xhr) => {
       console.log((xhr.loaded / xhr.total) * 100 + "% loaded"); // Progress callback
@@ -145,6 +113,29 @@ function setupBridges(){
     }
   );
 }
+/**
+ * Sets up fish
+ */
+function setUpFish() {
+  const loader = new GLTFLoader();
+
+  const scale = 0.07;
+  loader.load("assets/white_fish.glb", function (gltf) {
+    tui = gltf.scene;
+    tui.scale.set(scale, -scale, scale);
+    tui.position.set(0, 2.2, 2);
+    scene.add(tui);
+    fishArr.push(tui);
+  });
+
+  loader.load("assets/black_fish.glb", function (gltf) {
+    la = gltf.scene;
+    la.scale.set(scale, -scale, scale);
+    la.position.set(0, 2.2, -2);
+    scene.add(la);
+    fishArr.push(la);
+  });
+}
 
 function setUpPondWater() {
   waterMesh.geometry = new THREE.PlaneGeometry(5, 5, 256, 256); // TODO can adjust to fit island
@@ -152,6 +143,7 @@ function setUpPondWater() {
   waterMesh.position.y = 2.5; // Place the water mesh above slightly below surface of island
 
   scene.add(waterMesh);
+  document.addEventListener('mousemove', (event) => onMouseMove(event, renderer, camera));
 }
 
 function init() {
@@ -177,7 +169,7 @@ function init() {
   // spotLight.castShadow = false;
   // scene.add(spotLight);
 
-  const pointLight = new THREE.PointLight(0xffffff, 10);
+  pointLight = new THREE.PointLight(0xffffff, 10);
   pointLight.position.set(0,5,0);
   scene.add(pointLight);
 
@@ -186,18 +178,15 @@ function init() {
   setupOcean();
   
   // CREATE ISLAND
-  // TODO: make this more exciting.
-  // setupIsland();
+  // TODO: need to replace file after baking wood texture
+  setupIsland();
 
-  setupBridges();
+  // CREATE FISH
+  setUpFish();
 
   // CREATE "MOUNTAIN LAND"
   // TODO: work on this
   setUpMountains();
-
-  // CREATE "MOUNTAIN LAND"
-  // TODO: work on this
-  // setUpMountains();
 
   // CREATE POND WATER MESH
   setUpPondWater();
@@ -210,6 +199,28 @@ function init() {
   controls.maxPolarAngle = Math.PI * 1 / 3;
   controls.target.set(0, 0, 0);
   controls.update();
+
+   // DRAG CONTROLS for fish
+  dragControls = new DragControls( fishArr, camera, renderer.domElement)
+  dragControls.transformGroup = true;
+  dragControls.addEventListener( 'dragstart', function ( event ) {
+    controls.enabled = false;
+    if (event.object == tui) {
+      isTuiDragging = true;
+    } else if (event.object == la) {
+      isLaDragging = true;
+    }
+  } );
+  
+  dragControls.addEventListener( 'dragend', function ( event ) {
+    controls.enabled = true;
+    if (event.object == tui) {
+      console.log("tui");
+      isTuiDragging = false;
+    } else if (event.object == la) {
+      isLaDragging = false;
+    }
+  } );
   
   setupKeyPressInteraction();
   window.addEventListener("resize", onWindowResize);
@@ -225,8 +236,6 @@ function onWindowResize() {
   renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
-document.addEventListener('mousemove', (event) => onMouseMove(event, renderer, camera));
-
 function animate() {
 
   // Moves water and controls bloom based on `b` keypress
@@ -236,5 +245,18 @@ function animate() {
   waterMesh.material.uniforms.time.value += 0.03;
 
   updateSimulation(renderer);
+
+  if (tui) {
+    tuiTime = animateFish(tui, 0, pointLight, tuiTime, isTuiDragging);
+  }
+
+  if (la) {
+    laTime = animateFish(la, 1, pointLight, laTime, isLaDragging);
+  }
+
+  if (tui && la) {
+    pointLight.intensity = Math.max(tui.position.y, la.position.y) * 10 + 10; // light increases as fish position gets higher
+  }
+
   renderer.render(scene, camera);
 }
