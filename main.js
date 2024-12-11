@@ -20,8 +20,8 @@ import {
   time,
 } from "three/tsl";
 
-import { waterMesh } from './pond.js';
-import { createOceanMesh, updateWater, INIT_BLOOM } from './ocean-water.js';
+import { updatePondWater, waterMesh } from './pond.js';
+import { createOceanMesh, updateOcean, INIT_BLOOM } from './ocean-water.js';
 import { updateSimulation, onMouseMove } from './pond-simulation.js';
 import { genBezier, animateFish } from './fish.js';
 import { update } from 'three/examples/jsm/libs/tween.module.js';
@@ -40,11 +40,11 @@ let isTuiDragging, isLaDragging = false;
 let bloomOn = false;
 // Constants to change "ocean" position
 const OCEAN_X = 0;
-const OCEAN_Y = -4; // CLAIRE lowered slightly
+const OCEAN_Y = -3.8; // TODO need ocean to stay under island
 const OCEAN_Z = 0;
 
 const ISLAND_X = 0;
-const ISLAND_Y = 1.2;
+const ISLAND_Y = 1.5;
 const ISLAND_Z = 0;
 
 init();
@@ -239,7 +239,8 @@ function onWindowResize() {
 function animate() {
 
   // Moves water and controls bloom based on `b` keypress
-  updateWater(bloomOn);
+  updateOcean(bloomOn);
+  updatePondWater(bloomOn);
   
   // Update the water's time uniform
   waterMesh.material.uniforms.time.value += 0.03;

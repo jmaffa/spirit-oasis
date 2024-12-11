@@ -40,7 +40,7 @@ const dropFragmentShader = `
 
         float wave = sin(distance * 30.0 - timeStep * 3.0) * ripple; // adjust 30 for wave height
 
-        float newHeight = clamp(originalTexture.r + wave * 0.2, 0.0, 0.45); // adjust 0.4 for wave effect strength
+        float newHeight = clamp(originalTexture.r + wave * 0.2, 0.0, 0.35); // adjust 0.4 for wave effect strength
 
         gl_FragColor = vec4(newHeight, 0, 0, 1.0);
         // Instead of affecting just the red channel, keep original texture's color
@@ -66,8 +66,8 @@ const dropMaterial = new THREE.ShaderMaterial({
     uniforms: {
         uTexture: { value: renderTargetA.texture },  
         center: { value: new THREE.Vector2() }, 
-        radius: { value: 0.1 },
-        strength: { value: 0.4 }, 
+        radius: { value: 0.15 },
+        strength: { value: 0.5 }, 
         timeStep: { value: 0.0 },
     },
 });
