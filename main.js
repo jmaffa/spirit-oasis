@@ -367,11 +367,11 @@ function animate() {
   updateSimulation(renderer);
 
   if (tui) {
-    tuiTime = animateFish(tui, 0, pointLight2, tuiTime, isTuiDragging, godRays);
+    tuiTime = animateFish(tui, 0, [pointLight1, pointLight2], tuiTime, isTuiDragging, godRays);
   }
 
   if (la) {
-    laTime = animateFish(la, 1, pointLight2, laTime, isLaDragging, godRays);
+    laTime = animateFish(la, 1, [pointLight1, pointLight2], laTime, isLaDragging, godRays);
   }
 
   if (tui && la) {

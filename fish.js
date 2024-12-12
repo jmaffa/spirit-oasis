@@ -52,13 +52,13 @@ function updateFishPosition(fish, curve, fishTime) {
  * 
  * @param {*} fish 
  * @param {*} fishInt 
- * @param {*} light 
+ * @param {*} lights
  * @param {*} t 
  * @param {*} isDragging 
  * @param {*} godRays 
  * @returns 
  */
-function animateFish(fish, fishInt, light, t, isDragging, godRays) {
+function animateFish(fish, fishInt, lights, t, isDragging, godRays) {
   if (fish.position.y < height-0.05) {fish.position.y = height-0.05;} // make sure fish can't be dragged too far down
   if (fish.position.y > height + 2) {fish.position.y = height+2;}
     // if new cycle
@@ -87,7 +87,8 @@ function animateFish(fish, fishInt, light, t, isDragging, godRays) {
           fish.position.y = height; // make sure she lands at zero
         }
         
-      light.color = new THREE.Color().lerpColors(whiteMoonColor, redMoonColor, (fish.position.y - 2.2)/2);
+      lights[0].color = new THREE.Color().lerpColors(whiteMoonColor, redMoonColor, (fish.position.y - 2.2)/2);
+      lights[1].color = new THREE.Color().lerpColors(whiteMoonColor, redMoonColor, (fish.position.y - 2.2)/2);
       if (fish.position.y != 2.2) {
         for (let i = 0; i < godRays.length; i++) {
           const ray = godRays[i];
@@ -100,7 +101,8 @@ function animateFish(fish, fishInt, light, t, isDragging, godRays) {
     }
 
     if (isDragging) {
-      light.color = new THREE.Color().lerpColors(whiteMoonColor, redMoonColor, (fish.position.y - 2.2)/2);
+      lights[0].color = new THREE.Color().lerpColors(whiteMoonColor, redMoonColor, (fish.position.y - 2.2)/2);
+      lights[1].color = new THREE.Color().lerpColors(whiteMoonColor, redMoonColor, (fish.position.y - 2.2)/2);
       if (fish.position.y != 2.2) {
         for (let i = 0; i < godRays.length; i++) {
           const ray = godRays[i];
