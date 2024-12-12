@@ -3,8 +3,6 @@ by Avatar: the First Pixelbenders (Beatrice Hoang, Claire Yang, Joe Maffa, and V
 
 This project is a reimagination of a scene in the episode "The Siege of the North" from _Avatar: the Last Airbender_. In the Spirit Oasis, two koi fish Tui and La maintain the balance between the Earth and the Moon. When the fish are disturbed, chaos ensues.
 
-![An image of the Spirit Oasis from the show](image.png)
-
 Using ThreeJS and Blender, we modeled this scene using realistic water effects, lighting changes, and koi fish interaction.
 
 ## Installation

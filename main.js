@@ -3,23 +3,20 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { DragControls } from 'three/addons/controls/DragControls.js';
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-import {setUpWaterfallMesh, setUpSplash, updateWaterfall, updateSplash } from './waterfall.js';
+import {setUpWaterfallMesh, setUpSplash, updateWaterfall, updateSplash } from './scene-logic/waterfall.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 
-import { ColorifyShader } from 'three/examples/jsm/Addons.js';
+import { WatercolorShader } from './shaders/Watercolor.js';
 
-import { WatercolorShader } from './Watercolor.js';
-
-import { updatePondWater, waterMesh } from './pond.js';
-import { createOceanMesh, updateOcean } from './ocean-water.js';
-import { updateSimulation, onMouseMove } from './pond-simulation.js';
-import { animateFish } from './fish.js'; 
-import { update } from 'three/examples/jsm/libs/tween.module.js';
-import { createMountainMesh, createSideLand } from './mountains.js';
-import { getRayMaterial, generateCones } from './lights.js';
-import { createGrassPatch } from './Grass.js';
+import { updatePondWater, waterMesh } from './scene-logic/pond.js';
+import { createOceanMesh, updateOcean } from './scene-logic/ocean-water.js';
+import { updateSimulation, onMouseMove } from './scene-logic/pond-simulation.js';
+import { animateFish } from './scene-logic/fish.js'; 
+import { createMountainMesh, createSideLand } from './scene-logic/mountains.js';
+import { getRayMaterial, generateCones } from './scene-logic/lights.js';
+import { createGrassPatch } from './scene-logic/grass.js';
 
 let pointLight1, pointLight2;
 
