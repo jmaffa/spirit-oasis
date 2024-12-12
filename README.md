@@ -42,3 +42,6 @@ Grass is procedurally generated using an InstancedMesh and animated to create a 
 Postprocessing is done with a custom toon shader and watercolor renderpass that discretizes the scene color and fuzzes edges to create a paper-like texture.
 
 ## Demo
+
+https://github.com/user-attachments/assets/996ea3a7-bc1c-4e93-a957-a18d54498147
+
