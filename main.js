@@ -358,7 +358,8 @@ function animate() {
   updateSplash();
 
   // Moves water and controls bloom based on `b` keypress
-  updateOcean(bloomOn);
+  console.log(isTuiDragging || isLaDragging);
+  updateOcean(bloomOn, isTuiDragging || isLaDragging, tui.position.y);
   updatePondWater(bloomOn);
   
   // Update the water's time uniform

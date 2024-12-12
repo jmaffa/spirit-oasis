@@ -104,6 +104,8 @@ const fragShader = `
     uniform float time;
     uniform vec2 resolution;
     uniform float bloom;
+    uniform bool isDragging;
+    uniform float fishHeight;
 
     // Squares a vector
     float lengthSquared(vec2 v){
@@ -159,9 +161,17 @@ const fragShader = `
         // Compute the base Worley noise pattern
         float basePattern = fworley(uv * resolution / 1500.0);
 
+        vec3 toonColor;
         // Toon Shading 
-        vec3 toonColor = applyToonShading(vec3(0.1, 0.8 * basePattern, pow(basePattern, 0.5 - basePattern)), basePattern);
-
+        toonColor = (1.0 - fishHeight) * applyToonShading(vec3(0.1, 0.8 * basePattern, pow(basePattern, 0.5 - basePattern)), basePattern) + fishHeight * applyToonShading(vec3(0.9, 0.1 * basePattern, 0.3 * pow(basePattern, 0.2 - basePattern)), basePattern);
+        
+        // if (isDragging){
+        //   // toonColor = vec3(1, 0, 0);
+        //   toonColor = fishHeight * applyToonShading(vec3(0.9, 0.1 * basePattern, 0.3 * pow(basePattern, 0.2 - basePattern)), basePattern);
+        // }
+        // else{
+        //   toonColor = applyToonShading(vec3(0.1, 0.8 * basePattern, pow(basePattern, 0.5 - basePattern)), basePattern);
+        // }
         // Final color output
         gl_FragColor = vec4(toonColor, 1.0);
     }
@@ -175,6 +185,8 @@ const waterMaterial = new THREE.ShaderMaterial({
         },
         bloom: { value: INIT_BLOOM},
         waveMultiplier: {value: INIT_BLOOM},
+        isDragging : {value: false},
+        fishHeight : {value: 1.0}
     },
     vertexShader: vertShader,
     fragmentShader: fragShader,
@@ -239,7 +251,12 @@ function createOceanMesh(){
 /**
  * Water animation method: handles water movement, wave simulation, and bloom effect
  */
-function updateOcean(bloomOn) {
+function updateOcean(bloomOn, isDragging, fishHeight) {
+
+  // if (isDragging){
+  waterMaterial.uniforms.isDragging.value = isDragging;
+  waterMaterial.uniforms.fishHeight.value = fishHeight - 2.0;
+  // }
   // Increments time to simulate water movement
   waterMaterial.uniforms.time.value += 0.05;
 
