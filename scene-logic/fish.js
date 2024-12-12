@@ -13,8 +13,8 @@ const speed = 0.002;
 
 function genBezier(initialPos, isClockwise) {
     const points = [initialPos];
-    const minRadius = isClockwise ? 0.3 : 0.7;
-    const maxRadius = isClockwise ? 0.7 : 1.2;
+    const minRadius = isClockwise ? 0.3 : 1;
+    const maxRadius = isClockwise ? .9 : 2;
 
     const numDivisions = THREE.MathUtils.randInt(6, 12);
     const angleInterval = (2 * Math.PI) / numDivisions;

@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { DragControls } from 'three/addons/controls/DragControls.js';
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { FlyControls } from 'three/addons/controls/FlyControls.js';
 
 import {setUpWaterfallMesh, setUpSplash, updateWaterfall, updateSplash } from './scene-logic/waterfall.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
@@ -20,7 +21,7 @@ import { createGrassPatch } from './scene-logic/grass.js';
 
 let pointLight1, pointLight2;
 
-let renderer, scene, camera, cubemap, dragControls;
+let renderer, scene, camera, cubemap, dragControls, controls;
 let tui, la;
 const fishArr = [];
 let tuiTime = 0;
@@ -253,7 +254,8 @@ function init() {
 
   // // SET UP CAMERA
   camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
-  camera.position.set(3, 10, 6);
+  camera.position.set(0, 7, 8);
+  camera.rotateOnAxis(new THREE.Vector3(1, 0, 0), -Math.PI / 6);
 
   // SET UP RENDERER
   renderer = new THREE.WebGLRenderer( { antialias: true } );
@@ -295,13 +297,18 @@ function init() {
   setUpPondWater();
 
   // MOUSE ROTATION CONTROLS
-  const controls = new OrbitControls(camera, renderer.domElement);
-  controls.minDistance = 5;
-  controls.maxDistance = 10;
-  controls.minPolarAngle = 0;
-  controls.maxPolarAngle = Math.PI * 3 / 10;
-  controls.target.set(0, 0, 0);
-  controls.update();
+  // const controls = new OrbitControls(camera, renderer.domElement);
+  // controls.minDistance = 5;
+  // controls.maxDistance = 10;
+  // controls.minPolarAngle = 0;
+  // controls.maxPolarAngle = Math.PI * 3 / 10;
+  // controls.target.set(0, 0, 0);
+  // controls.update();
+  controls = new FlyControls( camera, renderer.domElement );
+  controls.movementSpeed = 7;
+  controls.rollSpeed = Math.PI / 6;
+  controls.autoForward = false;
+  controls.dragToLook = true;
 
    // DRAG CONTROLS for fish
   dragControls = new DragControls( fishArr, camera, renderer.domElement)
@@ -376,6 +383,6 @@ function animate() {
   }
 
   // renderer.render(scene, camera);
-
+  controls.update(0.01);
   composer.render(); // use this to render watercolor shader
 }
