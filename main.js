@@ -159,7 +159,7 @@ function setupIsland(){
       });
 
       // Scale the model
-      model1.scale.set(0.47, 0.35, 0.35);
+      model1.scale.set(0.47, 0.35, 0.47);
 
       // Position the model
       model1.position.set(ISLAND_X, ISLAND_Y, ISLAND_Z);
