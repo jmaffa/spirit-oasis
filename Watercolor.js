@@ -10,7 +10,7 @@ export const WatercolorShader = {
         scale: { value: 0.02 }, // Enhanced Wobble Effect
         threshold: { value: 3.0 }, // Softer Edge Detection
         darkening: { value: 2.0 }, // Stronger Edge Darkening
-        pigment: { value: 1.3 }, // More Pigment Dispersion
+        pigment: { value: 1.5 }, // More Pigment Dispersion
     },
 
     vertexShader: `
