@@ -5,7 +5,7 @@ let grassBlade;
 const GRASS_COUNT = 1000;
 
 const POND_CENTER = new THREE.Vector2(0, 0);  // center of pond 
-const POND_RADIUS = 1.7;  // pond radius
+const POND_RADIUS = 2.1;  // pond radius
 
 class GrassMaterial extends THREE.ShaderMaterial {
   uniforms = {
@@ -146,14 +146,14 @@ export const createGrassPatch = async (scene, grassModelURL) => {
   let grassPosition; 
 
   do {
-    const x = Math.random() * 4.2 - 2.3;   // grass X range
-    const z = Math.random() * 7 - 3.3;    // grass Z range
+    const x = Math.random() * 7 - 3.3;   // grass X range
+    const z = Math.random() * 6.5 - 3.3;    // grass Z range
     grassPosition = new THREE.Vector2(x, z);
   } while (grassPosition.distanceTo(POND_CENTER) < POND_RADIUS);
 
   // create grass instance
   const grass = new THREE.Object3D();
-  grass.position.set(grassPosition.x, 4.8, grassPosition.y);  // Slightly above ground
+  grass.position.set(grassPosition.x, 4.6, grassPosition.y);  // Slightly above ground
   grass.rotation.y = Math.random() * Math.PI * 2.0;
   grass.scale.setScalar(Math.random() * 0.1);
 
