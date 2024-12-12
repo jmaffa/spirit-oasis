@@ -9,7 +9,7 @@ Using ThreeJS and Blender, we modeled this scene using realistic water effects, 
 To start our web app locally, follow the [ThreeJS installation instructions](https://threejs.org/docs/#manual/en/introduction/Installation). Once configured, run our web app with `npx vite`.
 
 ## How to interact
-- Drag around the screen to view the scene from different angles
+- Use WASD and Arrow keys to move around the scene.
 - Hover and move mouse over the pond to move ripples
 - Drag Tui and La out of the pond to change lighting
 - Press `b` to turn on/off bloom effect in the water.
