@@ -1,0 +1,33 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+@font-face {
+    font-family: 'avatar';
+    src: url('/fonts/Avatar\ Airbender.ttf');
+}
+
+.instruction-box {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    background-color: rgba(255, 255, 255, 0.6);
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1000; 
+    width: min(max(350px, 40%), 400px);
+    font-size: 18px;
+}
+
+.instruction-box h2 {
+    margin: 0 0 10px;
+    font-family: 'avatar';
+    font-size: 35px;
+}
+
+.instruction-box ol {
+    padding-left: 20px;
+    margin: 0;
+}
