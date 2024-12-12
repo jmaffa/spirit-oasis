@@ -35,6 +35,13 @@ const fragmentShader = `
   }
 `;
 
+/**
+ * 
+ * @param {*} camera 
+ * @returns 
+ * 
+ * REF: https://www.youtube.com/watch?v=e2fzXvbbZVY
+ */
 function getRayMaterial(camera) {
   const raysMaterial = new THREE.ShaderMaterial({
     vertexShader: vertexShader,
