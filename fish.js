@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 
-const height = 2.2;
+const height = 2.0;
 let tuiCurve = genBezier(new THREE.Vector3(0, height, 2), true);
 let laCurve = genBezier(new THREE.Vector3(0, height, -2), false);
 // const redMoonColor = new THREE.Color(74/255, 4/255, 4/255);

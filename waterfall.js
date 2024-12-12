@@ -1,10 +1,10 @@
 import * as THREE from "three";
 
 const WATERFALL_PARTICLE_COUNT = 2500;
-const WATERFALL_X = 8.0
+const WATERFALL_X = 8.5
 const WATERFALL_X_OFFSET = -5.0
 const WATERFALL_Y = 8.0;
-const WATERFALL_Z = 2.0
+const WATERFALL_Z = 3.0
 const WATERFALL_Z_OFFSET = - 10.0
 const WATERFALL_SPEED = 0.1
 const WATERFALL_COLOR = 0x5b73e6;

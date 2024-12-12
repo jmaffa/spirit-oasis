@@ -20,7 +20,7 @@ import { update } from 'three/examples/jsm/libs/tween.module.js';
 import { createMountainMesh, createSideLand } from './mountains.js';
 import { getRayMaterial, generateCones } from './lights.js';
 
-let pointLight, pointLight2;
+// let pointLight, pointLight2;
 let pointLight1;
 let pointLight2;
 
@@ -45,7 +45,7 @@ const OCEAN_Y = -3.5; // TODO need ocean to stay under island
 const OCEAN_Z = 0;
 
 const ISLAND_X = 0;
-const ISLAND_Y = 1.5;
+const ISLAND_Y = 1.2;
 const ISLAND_Z = 0;
 
 const clock = new THREE.Clock();
@@ -97,44 +97,45 @@ function setUpMountains(){
   scene.add(mountainMeshLeftBack);
 
   const mountainMeshLeftFront = createMountainMesh(20, 5);
-  mountainMeshLeftFront.position.set(-9.0, 3.0, 8.0);
+  mountainMeshLeftFront.position.set(-8.4, 3.0, 8.0);
   mountainMeshLeftFront.rotation.x = -Math.PI / 2;
   mountainMeshLeftFront.rotation.z = - Math.PI / 3;
   scene.add(mountainMeshLeftFront);
 
   const mountainMeshRightFront = createMountainMesh(20, 5);
-  mountainMeshRightFront.position.set(9.0, 3.0, 8.0);
+  mountainMeshRightFront.position.set(8.4, 3.0, 8.0);
   mountainMeshRightFront.rotation.x = -Math.PI / 2;
   mountainMeshRightFront.rotation.z = Math.PI / 3;
   scene.add(mountainMeshRightFront);
 
   const mountainMeshOutsideFrontRight = createMountainMesh(30, 2);
-  mountainMeshOutsideFrontRight.position.set(3.0, 3.0, 28.0);
+  mountainMeshOutsideFrontRight.position.set(2.8, 3.0, 28.0);
   mountainMeshOutsideFrontRight.rotation.x = -Math.PI / 2;
   mountainMeshOutsideFrontRight.rotation.z = -Math.PI / 2;
   scene.add(mountainMeshOutsideFrontRight);
 
   const mountainMeshOutsideFrontLeft = createMountainMesh(30, 2);
-  mountainMeshOutsideFrontLeft.position.set(-3.0, 3.0, 28.0);
+  mountainMeshOutsideFrontLeft.position.set(-2.8, 3.0, 28.0);
   mountainMeshOutsideFrontLeft.rotation.x = -Math.PI / 2;
   mountainMeshOutsideFrontLeft.rotation.z = -Math.PI / 2;
   scene.add(mountainMeshOutsideFrontLeft);
 
   // Then the land connected to mountains and bridge
-  const rightFrontLand = createSideLand();
-  rightFrontLand.position.set(9.0, -6.0, 4.0);
+  const rightFrontLand = createSideLand(0.1, 20);
+  rightFrontLand.position.set(8.0, 2.5, 4.0);
   rightFrontLand.rotation.x = -Math.PI / 2;
+  rightFrontLand.rotation.y = -Math.PI / 16;
   rightFrontLand.rotation.z = -Math.PI / 6;
   scene.add(rightFrontLand)
 
-  const leftFrontLand = createSideLand();
-  leftFrontLand.position.set(-9.0, -6.0, 4.0);
+  const leftFrontLand = createSideLand(0.1, 20);
+  leftFrontLand.position.set(-8.0, 2.5, 4.0);
   leftFrontLand.rotation.x = -Math.PI / 2;
   leftFrontLand.rotation.z = Math.PI / 6;
   scene.add(leftFrontLand);
 
-  const frontLand = createSideLand();
-  frontLand.position.set(0, -6.0, 26.0);
+  const frontLand = createSideLand(8, 30);
+  frontLand.position.set(0, -5.8, 28.0);
   frontLand.rotation.x = -Math.PI / 2;
   scene.add(frontLand);
 
@@ -159,7 +160,7 @@ function setupIsland(){
       });
 
       // Scale the model
-      model1.scale.set(0.35, 0.35, 0.35);
+      model1.scale.set(0.47, 0.35, 0.35);
 
       // Position the model
       model1.position.set(ISLAND_X, ISLAND_Y, ISLAND_Z);
@@ -192,7 +193,7 @@ function setUpFish() {
   loader.load("assets/black_fish.glb", function (gltf) {
     la = gltf.scene;
     la.scale.set(scale, -scale, scale);
-    la.position.set(0, 2.2, -2);
+    la.position.set(0, 2.0, -2);
     scene.add(la);
     fishArr.push(la);
   });
@@ -201,7 +202,7 @@ function setUpFish() {
 function setUpPondWater() {
   waterMesh.geometry = new THREE.PlaneGeometry(5, 5, 256, 256); // TODO can adjust to fit island
   waterMesh.rotation.x = -Math.PI / 2; 
-  waterMesh.position.y = 2.5; // Place the water mesh above slightly below surface of island
+  waterMesh.position.y = 2.2; // Place the water mesh above slightly below surface of island
 
   scene.add(waterMesh);
   document.addEventListener('mousemove', (event) => onMouseMove(event, renderer, camera));
