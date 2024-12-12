@@ -31,3 +31,11 @@ body {
     padding-left: 20px;
     margin: 0;
 }
+.instruction-box p {
+    font-family: 'avatar';
+    font-size: 18px;
+}
+.instruction-box li {
+    font-family: 'avatar';
+    font-size: 18px;
+}
