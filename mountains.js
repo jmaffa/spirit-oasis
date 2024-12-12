@@ -27,8 +27,8 @@ function createMountainMesh(width, depth) {
   return mountainMesh;
 }
 
-function createSideLand(){
-  const landGeometry = new THREE.CylinderGeometry(8, 8, 30, 32)
+function createSideLand(radius,depth){
+  const landGeometry = new THREE.CylinderGeometry(radius, radius, depth, 32)
   const landMaterial = new THREE.MeshStandardMaterial({
     color: 0xd4e7f3,
   });
