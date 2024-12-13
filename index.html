@@ -7,7 +7,19 @@
 	</head>
 	<body>
 		<script type="module" src="/main.js"></script>
-		<div class="instruction-box">
+    <script>
+      function toggle(elem) {
+        
+          sec=elem.parentElement;
+          coll=sec.getElementsByClassName("collapsible-content")[0];
+          const currentOpacity = window.getComputedStyle(coll).opacity
+          coll.style.opacity = currentOpacity == 1 ? 0 : 1;
+      }
+    </script>
+  <button type="button" class="collapsible" id="x-button" onclick="toggle(this);">
+    Instructions
+  </button>
+		<div id="instruction-box" class="collapsible-content" >
 			<h2>Welcome to the Spirit Oasis!</h2>
 			<ul>
 				<li> Use WASD and Arrow keys to move </li>

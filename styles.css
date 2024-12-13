@@ -8,10 +8,15 @@ body {
     src: url('/fonts/Avatar\ Airbender.ttf');
 }
 
-.instruction-box {
+.collapsible-content {
+  opacity: 1;
+  transition: 0.2s;
+}
+
+#instruction-box {
     position: absolute;
-    bottom: 20px;
-    left: 20px;
+    bottom: 30px;
+    left: 30px;
     background-color: rgba(255, 255, 255, 0.6);
     padding: 10px;
     border-radius: 5px;
@@ -19,23 +24,52 @@ body {
     z-index: 1000; 
     width: min(max(350px, 40%), 400px);
     font-size: 18px;
+    z-index: 0;
 }
 
-.instruction-box h2 {
+#instruction-box h2 {
     margin: 0 0 10px;
     font-family: 'avatar';
     font-size: 35px;
 }
 
-.instruction-box ol {
+#instruction-box ol {
     padding-left: 20px;
     margin: 0;
 }
-.instruction-box p {
+#instruction-box p {
     font-family: 'avatar';
     font-size: 18px;
 }
-.instruction-box li {
+#instruction-box li {
     font-family: 'avatar';
     font-size: 18px;
+}
+
+#x-button {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  color: rgb(183, 132, 1);
+  font-family: 'avatar';
+  font-size: 20px;
+  /* width: 44px; */
+  /* height: 44px; */
+  text-align: center;
+  border: 1px solid black;
+  background-color: rgb(228, 216, 141);
+  border-radius: 10px;
+  z-index: 100;
+  padding: 10px;
+  transition: 0.2s;
+  box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.2);
+}
+#x-button:hover {
+  cursor: pointer;
+}
+#x-button:active {
+  color: rgb(130, 94, 4);
+  background-color: rgb(186, 172, 87);
+  /* transform: rotate(50deg); */
+  transition: 0.2s;
 }
