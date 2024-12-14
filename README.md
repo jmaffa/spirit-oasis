@@ -28,7 +28,7 @@ Worley Noise chooses random points along a grid and calculates noise based on di
 The pond is implemented as an animated mesh with ripples following sine and cosine waves to modify height over time.  Users can interact with the pond to push ripples based on mouse position. Bloom effect intensifies the waves and brightens the water as well.
 
 ### Models (Vivian, Claire)
-Aspects of the scene were modeled in Blender. In particular, Vivian modeled the island, bridges, and fish. Claire modeled the bamboo. These models were loaded in using GLTF.
+Aspects of the scene were modeled in Blender. In particular, Vivian modeled the island, bridges, leaves, and fish. Claire modeled the bamboo. These models were loaded in using GLTF.
 
 ### Waterfall Particle System (Joe)
 The waterfall and its splash are simulated as two animated particle systems. The waterfall randomly generates falling water particles that are continuously respawned at its origin. The mist effect is created by a smoke texture that is randomly spawned and moves outward with time.
