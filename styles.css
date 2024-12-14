@@ -1,11 +1,18 @@
 body {
     margin: 0;
-    font-family: Arial, sans-serif;
+    font-family: 'studia';
+    color:azure;
 }
 
 @font-face {
     font-family: 'avatar';
     src: url('/fonts/Avatar\ Airbender.ttf');
+    font-weight: 100;
+}
+
+@font-face {
+  font-family: 'studia';
+  src: url('/fonts/studla__.ttf');
 }
 
 .collapsible-content {
@@ -15,14 +22,12 @@ body {
 
 #instruction-box {
     position: absolute;
-    bottom: 30px;
-    left: 30px;
-    background-color: rgba(255, 255, 255, 0.6);
+    top: 40px;
+    left: 40px;
     padding: 10px;
     border-radius: 5px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     z-index: 1000; 
-    width: min(max(350px, 40%), 400px);
+    width: min(max(350px, 40%), 500px);
     font-size: 18px;
     z-index: 0;
 }
@@ -30,7 +35,7 @@ body {
 #instruction-box h2 {
     margin: 0 0 10px;
     font-family: 'avatar';
-    font-size: 35px;
+    font-size: 42px;
 }
 
 #instruction-box ol {
@@ -38,12 +43,12 @@ body {
     margin: 0;
 }
 #instruction-box p {
-    font-family: 'avatar';
     font-size: 18px;
+    font-weight:lighter;
 }
-#instruction-box li {
-    font-family: 'avatar';
-    font-size: 18px;
+
+#instruction-list {
+  padding-top: 4px;
 }
 
 #x-button {
@@ -51,7 +56,7 @@ body {
   bottom: 12px;
   left: 12px;
   color: rgb(183, 132, 1);
-  font-family: 'avatar';
+  font-family: 'studia';
   font-size: 20px;
   /* width: 44px; */
   /* height: 44px; */
@@ -72,4 +77,11 @@ body {
   background-color: rgb(186, 172, 87);
   /* transform: rotate(50deg); */
   transition: 0.2s;
+}
+
+.letter-button {
+  max-height: 1.2em;
+  display: inline-block;
+  position: relative;
+  vertical-align: bottom;
 }
