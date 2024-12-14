@@ -36,7 +36,7 @@ The waterfall and its splash are simulated as two animated particle systems. The
 ### Grass Simulation (Vivian)
 Grass is procedurally generated using an InstancedMesh and animated to create a smooth swaying effect to model wind.
 
-### Custom Toon Shader (Vivian)
+### Custom Watercolor Toon Shader (Vivian)
 Postprocessing is done with a custom toon shader and watercolor renderpass that discretizes the scene color and fuzzes edges to create a paper-like texture.
 
 ## Demo
