@@ -2,6 +2,9 @@ body {
     margin: 0;
     font-family: 'studia';
     color:azure;
+    height: 100%;
+    overflow-y: hidden;
+    overflow-x: hidden;
 }
 
 @font-face {
