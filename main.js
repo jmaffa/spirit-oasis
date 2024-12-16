@@ -293,7 +293,7 @@ function init() {
   // // SET UP CAMERA
   camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
   camera.position.set(0, 7, 8);
-  // camera.rotateOnAxis(new THREE.Vector3(1, 0, 0), -Math.PI / 6);
+  camera.rotateOnAxis(new THREE.Vector3(1, 0, 0), -Math.PI / 6);
 
   // SET UP RENDERER
   renderer = new THREE.WebGLRenderer( { antialias: true } );
