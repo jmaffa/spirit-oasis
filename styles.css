@@ -1,36 +1,87 @@
 body {
     margin: 0;
-    font-family: Arial, sans-serif;
+    font-family: 'studia';
+    color:azure;
+    height: 100%;
+    overflow-y: hidden;
+    overflow-x: hidden;
+    background-color: rgb(43, 62, 116); 
 }
 
 @font-face {
     font-family: 'avatar';
     src: url('/fonts/Avatar\ Airbender.ttf');
+    font-weight: 100;
 }
 
-.collapsible-content {
+@font-face {
+  font-family: 'studia';
+  src: url('/fonts/studla__.ttf');
+}
+
+#loading-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgb(43, 62, 116); 
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999; 
+  color: azure;
+  font-family: 'studia';
   opacity: 1;
-  transition: 0.2s;
+  transition: opacity 2s ease-out; 
+}
+
+body.loaded #loading-screen {
+  opacity: 0; 
+  visibility: hidden;
+}
+
+.spinner {
+  border: 5px solid rgb(174, 190, 228);
+  border-top: 5px solid azure; 
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+      transform: rotate(0deg);
+  }
+  100% {
+      transform: rotate(360deg);
+  }
+}
+
+#threejs-canvas {
+  opacity: 0;
+  transition: opacity 2s ease-out;
 }
 
 #instruction-box {
     position: absolute;
-    bottom: 30px;
-    left: 30px;
-    background-color: rgba(255, 255, 255, 0.6);
+    top: 40px;
+    left: 40px;
     padding: 10px;
     border-radius: 5px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     z-index: 1000; 
-    width: min(max(350px, 40%), 400px);
+    width: min(max(350px, 40%), 600px);
     font-size: 18px;
-    z-index: 0;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
 }
 
 #instruction-box h2 {
     margin: 0 0 10px;
     font-family: 'avatar';
-    font-size: 35px;
+    font-size: 42px;
 }
 
 #instruction-box ol {
@@ -38,12 +89,12 @@ body {
     margin: 0;
 }
 #instruction-box p {
-    font-family: 'avatar';
     font-size: 18px;
+    font-weight:lighter;
 }
-#instruction-box li {
-    font-family: 'avatar';
-    font-size: 18px;
+
+#instruction-list {
+  padding-top: 4px;
 }
 
 #x-button {
@@ -51,7 +102,7 @@ body {
   bottom: 12px;
   left: 12px;
   color: rgb(183, 132, 1);
-  font-family: 'avatar';
+  font-family: 'studia';
   font-size: 20px;
   /* width: 44px; */
   /* height: 44px; */
@@ -72,4 +123,11 @@ body {
   background-color: rgb(186, 172, 87);
   /* transform: rotate(50deg); */
   transition: 0.2s;
+}
+
+.letter-button {
+  max-height: 1.2em;
+  display: inline-block;
+  position: relative;
+  vertical-align: bottom;
 }

@@ -21,7 +21,7 @@ import { createGrassPatch } from './scene-logic/grass.js';
 
 let pointLight1, pointLight2;
 
-let renderer, scene, camera, cubemap, dragControls, controls;
+let renderer, composer, scene, camera, cubemap, dragControls, controls;
 let tui, la;
 const fishArr = [];
 let tuiTime = 0;
@@ -30,6 +30,7 @@ const redMoonColor = new THREE.Color(1, 0, 0);
 const whiteMoonColor = new THREE.Color(1, 1, 1);
 let isTuiDragging, isLaDragging = false;
 let godRays = [];
+let isLoaded = false
 
 // Flag to toggle bloom effect in "ocean"
 let bloomOn = false;
@@ -42,7 +43,39 @@ const ISLAND_X = 0;
 const ISLAND_Y = 1.2;
 const ISLAND_Z = 0;
 
-const clock = new THREE.Clock();
+const textureLoader = new THREE.TextureLoader();
+const modelLoader = new GLTFLoader();
+
+// Async function to load all assets before init
+async function loadAssets() {
+  try {
+    const [islandModel, whiteFishModel, blackFishModel, paperTexture, smokeTexture] = await Promise.all([
+      modelLoader.loadAsync('assets/island_v2.glb'),
+      modelLoader.loadAsync('assets/white_fish.glb'),
+      modelLoader.loadAsync('assets/black_fish.glb'),
+      textureLoader.loadAsync('./textures/paper.png'),
+      textureLoader.load("textures/smoke.png")
+    ]);
+
+    isLoaded = true;
+    const loadingScreen = document.getElementById('loading-screen');
+    const instructionBox = document.getElementById('instruction-box');
+    const canvas = document.getElementById('threejs-canvas');
+
+    loadingScreen.style.opacity = 0;
+    loadingScreen.style.display = 'none'; // After the fade-out, hide the loading screen
+
+    canvas.style.opacity = 1;
+    setTimeout(() => {
+      instructionBox.style.opacity = 1; // Fade-in the instruction box gradually
+    }, 2200);
+
+    return { islandModel, whiteFishModel, blackFishModel, paperTexture, smokeTexture }; 
+  } catch (error) {
+    console.error('Error loading assets: ', error);
+    throw error;
+  }
+}
 
 init();
 
@@ -54,6 +87,12 @@ function setupKeyPressInteraction() {
   document.addEventListener("keydown", function (event) {
     if (event.key === "b") {
       bloomOn = !bloomOn; // Toggle the flag
+    }
+  });
+  // Reset camrea
+  document.addEventListener("keydown", function (event) {
+    if (event.key === "r") {
+      // TODO: Would be nice to reset the camera back to scene load position
     }
   });
 }
@@ -138,63 +177,44 @@ function setUpMountains(){
 /**
  * Sets up island
  */
-function setupIsland(){
-  const loader = new GLTFLoader();
-  loader.load(
-    "assets/island_v2.glb", // URL to your .glb file
-    (gltf) => {
-      const model1 = gltf.scene; // Access the loaded model
-
-      // Apply Toon Shader
-      model1.traverse((child) => {
-        if (child.isMesh) {
-          const originalColor = child.material.color.clone();
-          child.material = new THREE.MeshToonMaterial({
-            color: originalColor,
-            map: child.material.map,
-          });
-        }
+function setupIsland(islandModel) {
+  // Apply Toon Shader
+  islandModel.traverse((child) => {
+    if (child.isMesh) {
+      const originalColor = child.material.color.clone();
+      child.material = new THREE.MeshToonMaterial({
+        color: originalColor,
+        map: child.material.map,
       });
-
-      // Scale the model
-      model1.scale.set(0.47, 0.35, 0.47);
-
-      // Position the model
-      model1.position.set(ISLAND_X, ISLAND_Y, ISLAND_Z);
-
-      scene.add(model1);
-    },
-    (xhr) => {
-      console.log((xhr.loaded / xhr.total) * 100 + "% loaded"); // Progress callback
-    },
-    (error) => {
-      console.error("An error happened:", error); // Error callback
     }
-  );
+  });
+
+  // Scale the model
+  islandModel.scale.set(0.47, 0.35, 0.47);
+
+  // Position the model
+  islandModel.position.set(ISLAND_X, ISLAND_Y, ISLAND_Z);
+
+  scene.add(islandModel);
 }
 
 /**
  * Sets up fish
  */
-function setUpFish() {
-  const loader = new GLTFLoader();
-
+function setUpFish(whiteFishModel, blackFishModel) {
   const scale = 0.07;
-  loader.load("assets/white_fish.glb", function (gltf) {
-    tui = gltf.scene;
-    tui.scale.set(scale, -scale, scale);
-    tui.position.set(0, 2.2, 2);
-    scene.add(tui);
-    fishArr.push(tui);
-  });
 
-  loader.load("assets/black_fish.glb", function (gltf) {
-    la = gltf.scene;
-    la.scale.set(scale, -scale, scale);
-    la.position.set(0, 2.0, -2);
-    scene.add(la);
-    fishArr.push(la);
-  });
+  tui = whiteFishModel;
+  tui.scale.set(scale, -scale, scale);
+  tui.position.set(0, 2.2, 2);
+  scene.add(tui);
+  fishArr.push(tui);
+
+  la = blackFishModel;
+  la.scale.set(scale, -scale, scale);
+  la.position.set(0, 2.0, -2);
+  scene.add(la);
+  fishArr.push(la);
 }
 
 function setUpPondWater() {
@@ -207,28 +227,11 @@ function setUpPondWater() {
 }
 
 /**
- * Sets up watercolor shader
- */
-const composer = new EffectComposer(renderer);
-const renderPass = new RenderPass(scene, camera);
-
-const textureLoader = new THREE.TextureLoader();
-const paperTexture = textureLoader.load('./textures/paper.png')
-
-const watercolorEffect = new ShaderPass(WatercolorShader);
-watercolorEffect.uniforms['tPaper'].value = paperTexture; // Use previously loaded paper texture
-watercolorEffect.uniforms['texel'].value = new THREE.Vector2(1.0 / window.innerWidth, 1.0 / window.innerHeight);
-
-composer.addPass(renderPass);
-composer.addPass(watercolorEffect);
-
-/**
  * Sets up waterfall
  */
-function setUpWaterfall(){
-
+function setUpWaterfall(smokeTexture){
   scene.add(setUpWaterfallMesh());
-  scene.add(setUpSplash());
+  scene.add(setUpSplash(smokeTexture));
 }
 
 /**
@@ -244,6 +247,41 @@ async function setUpGrass() {
   }
 
   console.log("Grass patches loaded.");
+}
+
+async function initElements() {
+  // LOAD ALL ASSETS
+  const { islandModel, whiteFishModel, blackFishModel, paperTexture, smokeTexture } = await loadAssets();
+
+  // CREATE ISLAND
+  setupIsland(islandModel.scene);
+  
+  godRays = generateCones(scene, camera);
+ 
+  // CREATE OCEAN
+  setupOcean();
+ 
+  // CREATE POND WATER MESH
+  setUpPondWater();
+ 
+  // CREATE FISH
+  setUpFish(whiteFishModel.scene, blackFishModel.scene);
+   
+  // CREATE WATERFALL
+  setUpWaterfall(smokeTexture);
+ 
+  // CREATE MOUNTAINS
+  setUpMountains();
+ 
+  // SET UP WATERCOLOR SHADER
+  const renderPass = new RenderPass(scene, camera);
+  
+  const watercolorEffect = new ShaderPass(WatercolorShader);
+  watercolorEffect.uniforms['tPaper'].value = paperTexture; // Use previously loaded paper texture
+  watercolorEffect.uniforms['texel'].value = new THREE.Vector2(1.0 / window.innerWidth, 1.0 / window.innerHeight);
+  
+  composer.addPass(renderPass);
+  composer.addPass(watercolorEffect);
 }
 
 function init() {
@@ -262,7 +300,12 @@ function init() {
   renderer.setPixelRatio( window.devicePixelRatio );
   renderer.setSize( window.innerWidth, window.innerHeight );
   // renderer.setAnimationLoop( animate );
-  document.body.appendChild( renderer.domElement );
+  const canvas = renderer.domElement;
+  canvas.id = 'threejs-canvas'
+  document.body.appendChild( canvas );
+
+  // SET UP COMPOSER
+  composer = new EffectComposer(renderer);
 
   pointLight1 = new THREE.PointLight(0xffffff, 30);
   pointLight1.position.set(0,5,3);
@@ -277,24 +320,7 @@ function init() {
   const light = new THREE.AmbientLight(0x404040); // Soft white light
   scene.add(light);
 
-  // CREATE FISH
-  setUpFish();
-  
-  godRays = generateCones(scene, camera);
-  // CREATE OCEAN
-  setupOcean();
-  
-  // CREATE WATERFALL
-  setUpWaterfall();
-
-  // CREATE ISLAND
-  setupIsland();
-
-  // CREATE MOUNTAINS
-  setUpMountains();
-  
-  // CREATE POND WATER MESH
-  setUpPondWater();
+  initElements();
 
   // MOUSE ROTATION CONTROLS
   // const controls = new OrbitControls(camera, renderer.domElement);
@@ -314,28 +340,25 @@ function init() {
   dragControls = new DragControls( fishArr, camera, renderer.domElement)
   dragControls.transformGroup = true;
   dragControls.addEventListener( 'dragstart', function ( event ) {
-    controls.enabled = false;
     if (event.object == tui) {
       isTuiDragging = true;
     } else if (event.object == la) {
       isLaDragging = true;
     }
+    controls.enabled = false;
   } );
   
   dragControls.addEventListener( 'dragend', function ( event ) {
-    controls.enabled = true;
     if (event.object == tui) {
-      console.log("tui");
       isTuiDragging = false;
     } else if (event.object == la) {
       isLaDragging = false;
     }
+    controls.enabled = true;
   } );
   
   setupKeyPressInteraction();
   window.addEventListener("resize", onWindowResize);
-
-  const clock = new THREE.Clock();
 
   // renderer.setAnimationLoop(animate); // start animation loop after loading
   
@@ -354,8 +377,9 @@ function onWindowResize() {
 }
 
 function animate() {
-  // TODO: post processing?
-  // postProcessing.render();
+  if (!isLoaded) {
+    return;
+  }
 
   // Animates waterfall movement and splash
   updateWaterfall();

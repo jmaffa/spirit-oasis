@@ -4,29 +4,47 @@
 		<meta charset="utf-8">
 		<title>The Spirit Oasis</title>
 		<link rel="stylesheet" href="styles.css">
+		<script src="https://kit.fontawesome.com/75ad4c9b6c.js" crossorigin="anonymous"></script>
 	</head>
 	<body>
 		<script type="module" src="/main.js"></script>
-    <script>
-      function toggle(elem) {
-        
-          sec=elem.parentElement;
-          coll=sec.getElementsByClassName("collapsible-content")[0];
-          const currentOpacity = window.getComputedStyle(coll).opacity
-          coll.style.opacity = currentOpacity == 1 ? 0 : 1;
-      }
-    </script>
-  <button type="button" class="collapsible" id="x-button" onclick="toggle(this);">
-    Instructions
-  </button>
+		<script>
+			function toggle(elem) {
+				console.log("button press");
+				const collBox = document.getElementById('instruction-box');
+				const button = elem;
+				const currentOpacity = window.getComputedStyle(collBox).opacity
+				console.log("current opacity: ")
+				console.log(currentOpacity);
+				if (currentOpacity == 1) {
+					collBox.style.opacity = 0;
+					button.innerText = "SHOW INSTRUCTIONS"; 
+				} else {
+					collBox.style.opacity = 1;
+					button.innerText = "HIDE INSTRUCTIONS";
+				}
+			}
+		</script>
+		<button type="button" class="collapsible" id="x-button" onclick="toggle(this);">
+			HIDE INSTRUCTIONS
+		</button>
+		<div id="loading-screen">
+			<div class="spinner"></div>
+			<p>Loading...</p>
+		</div>
 		<div id="instruction-box" class="collapsible-content" >
-			<h2>Welcome to the Spirit Oasis!</h2>
-			<ul>
-				<li> Use WASD and Arrow keys to move </li>
-        <li> Hover and move mouse over the pond to move ripples </li>
-				<li> Drag fish out of pond to change lighting </li>
-				<li> Press B to turn on/off bloom effect </li>
-			</ol>
+			<h2>THE SPIRIT OASIS</h2>
+			<div id="instruction-list">
+				<p> USE
+					&nbsp;<embed class="letter-button" src="assets/w-button.png" />
+					<embed class="letter-button" src="assets/a-button.png" />
+					<embed class="letter-button" src="assets/s-button.png" />
+					<embed class="letter-button" src="assets/d-button.png" />&nbsp;
+					AND ARROW KEYS TO MOVE </p>
+        		<p> HOVER AND MOVE&nbsp;<i class="fas fa-mouse-pointer" style="font-size: 14px;"></i>&nbsp;TO WATERBEND THE POND </p>
+				<p> DRAG&nbsp;<i class="fas fa-mouse-pointer" style="font-size: 14px;"></i>&nbsp;TUI OR LA OUT OF THE POND TO SUMMON THE BLOOD MOON </p>
+				<p> PRESS&nbsp;<embed class="letter-button" src="assets/b-button.png" />&nbsp;FOR AANG TO SUMMON KOIZILLA </p>
+			</div>
 		</div>
 	</body>
 </html>
