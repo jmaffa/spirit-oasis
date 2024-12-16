@@ -10,15 +10,24 @@
 		<script type="module" src="/main.js"></script>
     <script>
       function toggle(elem) {
-        
-          sec=elem.parentElement;
-          coll=sec.getElementsByClassName("collapsible-content")[0];
-          const currentOpacity = window.getComputedStyle(coll).opacity
-          coll.style.opacity = currentOpacity == 1 ? 0 : 1;
+		console.log("button press");
+        const collBox = document.getElementsByClassName('collapsible-content')[0];
+		const button = elem;
+		const currentOpacity = window.getComputedStyle(collBox).opacity
+		console.log("current opacity: ")
+		console.log(currentOpacity);
+        if (currentOpacity == 1) {
+			console.log("entered hide if");
+          	collBox.style.opacity = 0;
+          	button.innerText = "SHOW INSTRUCTIONS"; 
+        } else {
+          	collBox.style.opacity = 1;
+          	button.innerText = "HIDE INSTRUCTIONS";
+        }
       }
     </script>
   <button type="button" class="collapsible" id="x-button" onclick="toggle(this);">
-    HIDE/SHOW INSTRUCTIONS
+    HIDE INSTRUCTIONS
   </button>
 		<div id="instruction-box" class="collapsible-content" >
 			<h2>THE SPIRIT OASIS</h2>

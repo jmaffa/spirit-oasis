@@ -67,26 +67,6 @@ const vertexShader = `
     }
 `;
 
-// const fragmentShader = `
-//     varying vec2 vUv; // UV coordinates from the vertex shader
-//     uniform sampler2D waterTexture; // Use 2D texture instead of cubemap
-//     uniform float opacity; // Water transparency
-//     uniform vec3 uColor; // Base color of the water
-//     uniform float time;
-
-//     void main() {
-//         vec2 coords = vUv + vec2(sin(time * 0.1), cos(time * 0.1)) * 0.01;
-//         float height = texture2D(waterTexture, coords).r; // Sample height from texture
-
-//         vec4 textureColor = texture2D(waterTexture, vUv); // Sample the texture
-//         vec3 color = vec3(0.0, 0.1 + height * 0.2, 0.1);
-//         // color = mix(textureColor.rgb, color, 0.7); // Blend with the base color
-//         color = mix(color, vec3(0.0,0.0,0.2), 0.6); // Blue tint
-
-//         gl_FragColor = vec4(color, opacity);
-//     }
-// `;
-
 const waterMaterial = new THREE.ShaderMaterial({
     vertexShader,
     fragmentShader,
