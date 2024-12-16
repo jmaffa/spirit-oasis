@@ -5,6 +5,7 @@ body {
     height: 100%;
     overflow-y: hidden;
     overflow-x: hidden;
+    background-color: rgb(43, 62, 116); 
 }
 
 @font-face {
@@ -18,19 +19,50 @@ body {
   src: url('/fonts/studla__.ttf');
 }
 
-.collapsible-content {
-  opacity: 0;
-  animation: fadeIn 3s ease-in-out;
-  transition: opacity 0.5s ease-in-out;
+#loading-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgb(43, 62, 116); 
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999; 
+  color: azure;
+  font-family: 'studia';
+  opacity: 1;
+  transition: opacity 2s ease-out; 
 }
 
-@keyframes fadeIn {
+body.loaded #loading-screen {
+  opacity: 0; 
+  visibility: hidden;
+}
+
+.spinner {
+  border: 5px solid rgb(174, 190, 228);
+  border-top: 5px solid azure; 
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
   0% {
-      opacity: 0;
+      transform: rotate(0deg);
   }
   100% {
-      opacity: 1;
+      transform: rotate(360deg);
   }
+}
+
+#threejs-canvas {
+  opacity: 0;
+  transition: opacity 2s ease-out;
 }
 
 #instruction-box {
@@ -42,8 +74,8 @@ body {
     z-index: 1000; 
     width: min(max(350px, 40%), 600px);
     font-size: 18px;
-    z-index: 0;
-    opacity: 1;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
 }
 
 #instruction-box h2 {

@@ -100,9 +100,7 @@ function updateWaterfall() {
  * Creates a particle system using a smoke texture to simulate the mist of a waterfall splashing
  * @returns Splash mesh
  */
-function setUpSplash() {
-    const textureLoader = new THREE.TextureLoader();
-    const smokeTexture = textureLoader.load("textures/smoke.png");
+function setUpSplash(smokeTexture) {
     const smokeGeometry = new THREE.BufferGeometry();
     const smokeMaterial = new THREE.PointsMaterial({
       map: smokeTexture,

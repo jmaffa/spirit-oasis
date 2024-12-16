@@ -43,23 +43,34 @@ const ISLAND_X = 0;
 const ISLAND_Y = 1.2;
 const ISLAND_Z = 0;
 
-const loadingScreen = document.getElementById('loading-screen');
-
 const textureLoader = new THREE.TextureLoader();
 const modelLoader = new GLTFLoader();
 
 // Async function to load all assets before init
 async function loadAssets() {
   try {
-    const [islandModel, whiteFishModel, blackFishModel, paperTexture] = await Promise.all([
+    const [islandModel, whiteFishModel, blackFishModel, paperTexture, smokeTexture] = await Promise.all([
       modelLoader.loadAsync('assets/island_v2.glb'),
       modelLoader.loadAsync('assets/white_fish.glb'),
       modelLoader.loadAsync('assets/black_fish.glb'),
-      textureLoader.loadAsync('./textures/paper.png')
+      textureLoader.loadAsync('./textures/paper.png'),
+      textureLoader.load("textures/smoke.png")
     ]);
 
     isLoaded = true;
-    return { islandModel, whiteFishModel, blackFishModel, paperTexture }; 
+    const loadingScreen = document.getElementById('loading-screen');
+    const instructionBox = document.getElementById('instruction-box');
+    const canvas = document.getElementById('threejs-canvas');
+
+    loadingScreen.style.opacity = 0;
+    loadingScreen.style.display = 'none'; // After the fade-out, hide the loading screen
+
+    canvas.style.opacity = 1;
+    setTimeout(() => {
+      instructionBox.style.opacity = 1; // Fade-in the instruction box gradually
+    }, 2200);
+
+    return { islandModel, whiteFishModel, blackFishModel, paperTexture, smokeTexture }; 
   } catch (error) {
     console.error('Error loading assets: ', error);
     throw error;
@@ -218,9 +229,9 @@ function setUpPondWater() {
 /**
  * Sets up waterfall
  */
-function setUpWaterfall(){
+function setUpWaterfall(smokeTexture){
   scene.add(setUpWaterfallMesh());
-  scene.add(setUpSplash());
+  scene.add(setUpSplash(smokeTexture));
 }
 
 /**
@@ -240,7 +251,7 @@ async function setUpGrass() {
 
 async function initElements() {
   // LOAD ALL ASSETS
-  const { islandModel, whiteFishModel, blackFishModel, paperTexture } = await loadAssets();
+  const { islandModel, whiteFishModel, blackFishModel, paperTexture, smokeTexture } = await loadAssets();
 
   // CREATE ISLAND
   setupIsland(islandModel.scene);
@@ -257,7 +268,7 @@ async function initElements() {
   setUpFish(whiteFishModel.scene, blackFishModel.scene);
    
   // CREATE WATERFALL
-  setUpWaterfall();
+  setUpWaterfall(smokeTexture);
  
   // CREATE MOUNTAINS
   setUpMountains();
@@ -289,7 +300,9 @@ function init() {
   renderer.setPixelRatio( window.devicePixelRatio );
   renderer.setSize( window.innerWidth, window.innerHeight );
   // renderer.setAnimationLoop( animate );
-  document.body.appendChild( renderer.domElement );
+  const canvas = renderer.domElement;
+  canvas.id = 'threejs-canvas'
+  document.body.appendChild( canvas );
 
   // SET UP COMPOSER
   composer = new EffectComposer(renderer);

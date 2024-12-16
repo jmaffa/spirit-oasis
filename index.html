@@ -8,27 +8,30 @@
 	</head>
 	<body>
 		<script type="module" src="/main.js"></script>
-    <script>
-      function toggle(elem) {
-		console.log("button press");
-        const collBox = document.getElementsByClassName('collapsible-content')[0];
-		const button = elem;
-		const currentOpacity = window.getComputedStyle(collBox).opacity
-		console.log("current opacity: ")
-		console.log(currentOpacity);
-        if (currentOpacity == 1) {
-			console.log("entered hide if");
-          	collBox.style.opacity = 0;
-          	button.innerText = "SHOW INSTRUCTIONS"; 
-        } else {
-          	collBox.style.opacity = 1;
-          	button.innerText = "HIDE INSTRUCTIONS";
-        }
-      }
-    </script>
-  <button type="button" class="collapsible" id="x-button" onclick="toggle(this);">
-    HIDE INSTRUCTIONS
-  </button>
+		<script>
+			function toggle(elem) {
+				console.log("button press");
+				const collBox = document.getElementById('instruction-box');
+				const button = elem;
+				const currentOpacity = window.getComputedStyle(collBox).opacity
+				console.log("current opacity: ")
+				console.log(currentOpacity);
+				if (currentOpacity == 1) {
+					collBox.style.opacity = 0;
+					button.innerText = "SHOW INSTRUCTIONS"; 
+				} else {
+					collBox.style.opacity = 1;
+					button.innerText = "HIDE INSTRUCTIONS";
+				}
+			}
+		</script>
+		<button type="button" class="collapsible" id="x-button" onclick="toggle(this);">
+			HIDE INSTRUCTIONS
+		</button>
+		<div id="loading-screen">
+			<div class="spinner"></div>
+			<p>Loading...</p>
+		</div>
 		<div id="instruction-box" class="collapsible-content" >
 			<h2>THE SPIRIT OASIS</h2>
 			<div id="instruction-list">
